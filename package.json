@@ -1,0 +1,33 @@
+{
+  "name": "aggrid",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "oxlint",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@node-projects/excelforge": "^3.6.0",
+    "ag-charts-community": "^14.0.1",
+    "ag-charts-enterprise": "^14.0.1",
+    "ag-charts-react": "^14.0.1",
+    "ag-grid-community": "^36.0.1",
+    "ag-grid-enterprise": "^36.0.1",
+    "ag-grid-react": "^36.0.1",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "react-router-dom": "^7.18.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.2",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.3",
+    "oxlint": "^1.71.0",
+    "typescript": "~6.0.2",
+    "vite": "^8.1.1"
+  }
+}

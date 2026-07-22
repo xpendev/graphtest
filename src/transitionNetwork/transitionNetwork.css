@@ -1,0 +1,255 @@
+.tn-page {
+  min-height: 100vh;
+  padding: 20px 24px 32px;
+  background: #0f141a;
+  color: #eef5fa;
+  box-sizing: border-box;
+}
+
+.tn-page-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.tn-page-eyebrow {
+  margin: 0 0 4px;
+  color: #8aa0b2;
+  font-size: 12px;
+}
+
+.tn-page-title {
+  margin: 0 0 6px;
+  font-size: 1.6rem;
+  color: #eef5fa;
+}
+
+.tn-page-subtitle {
+  margin: 0;
+  color: #c5d6e4;
+  font-size: 0.95rem;
+}
+
+.tn-page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.tn-page-link {
+  padding: 8px 14px;
+  border: 1px solid #3d4a55;
+  border-radius: 6px;
+  color: #d7e6f2;
+  text-decoration: none;
+  font-size: 0.9rem;
+  background: #1e262d;
+}
+
+.tn-page-link:hover {
+  background: #24313c;
+}
+
+.tn-page-btn {
+  padding: 8px 14px;
+  border: 1px solid #5b9fd4;
+  border-radius: 6px;
+  background: #1e262d;
+  color: #d7e6f2;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tn-page-btn:hover:not(:disabled) {
+  background: #24313c;
+}
+
+.tn-page-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.tn-page-message {
+  margin: 0 0 12px;
+  color: #9fd0ef;
+  font-size: 0.9rem;
+}
+
+.tn-page-message.error {
+  color: #fca5a5;
+}
+
+.tn-page-stage {
+  height: calc(100vh - 140px);
+  min-height: 640px;
+  border: 1px solid #2a3238;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #1a1f24;
+}
+
+.transition-network {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #1a1f24;
+}
+
+.tn-chrome {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 10px 20px 0;
+  flex-shrink: 0;
+}
+
+.tn-summary {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  max-width: 48%;
+}
+
+.tn-summary-badge {
+  width: 148px;
+  height: 148px;
+  border-radius: 50%;
+  border: 2px solid #7eb6de;
+  background: radial-gradient(circle at 35% 30%, #3a5366, #24313c 70%);
+  color: #eef5fa;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 12px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.tn-summary-badge-title {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: #c5e6f8;
+}
+
+.tn-summary-badge-line {
+  font-size: 11px;
+  line-height: 1.35;
+  color: #d7e6f2;
+}
+
+.tn-summary-base {
+  color: #d7e6f2;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.tn-summary-base-title {
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: #9fd0ef;
+}
+
+.tn-summary-base-line {
+  color: #c5d6e4;
+}
+
+.tn-top-control {
+  width: min(320px, 42%);
+  color: #d7e6f2;
+  text-align: right;
+}
+
+.tn-top-control-source {
+  font-size: 12px;
+  color: #9fd0ef;
+  margin-bottom: 8px;
+}
+
+.tn-top-control-label {
+  display: block;
+  font-size: 12px;
+  color: #c5d6e4;
+  margin-bottom: 4px;
+}
+
+.tn-top-control-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: #eef5fa;
+  margin-bottom: 4px;
+}
+
+.tn-slider {
+  width: 100%;
+  accent-color: #5b9fd4;
+  cursor: pointer;
+}
+
+.tn-graph-area {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}
+
+.transition-network-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.tn-bottom-control {
+  flex-shrink: 0;
+  padding: 8px 24px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.tn-bottom-control-label {
+  font-size: 12px;
+  color: #c5d6e4;
+}
+
+.tn-slider-bottom {
+  width: min(520px, 80%);
+}
+
+.tn-tooltip {
+  position: absolute;
+  z-index: 5;
+  transform: translate(-50%, calc(-100% - 10px));
+  min-width: 160px;
+  max-width: 240px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: rgba(15, 20, 26, 0.95);
+  border: 1px solid #5b9fd4;
+  color: #eef5fa;
+  font-size: 12px;
+  line-height: 1.45;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+.tn-tooltip-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #9fd0ef;
+}
+
+.tn-tooltip-line {
+  color: #d7e6f2;
+}

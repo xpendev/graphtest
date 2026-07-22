@@ -1,0 +1,211 @@
+.app {
+  padding: 24px;
+  text-align: left;
+}
+
+.app-nav {
+  margin-bottom: 12px;
+}
+
+.app-nav-link {
+  display: inline-block;
+  padding: 8px 14px;
+  border: 1px solid #2563eb;
+  border-radius: 6px;
+  color: #2563eb;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.app-nav-link:hover {
+  background: #eff6ff;
+}
+
+.app h1 {
+  margin: 0 0 8px;
+  font-size: 1.75rem;
+  color: #1a1a1a;
+}
+
+.chart-heading {
+  margin: 32px 0 8px;
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.subtitle {
+  margin: 0 0 16px;
+  color: #555;
+  font-size: 0.95rem;
+}
+
+.grid-wrap {
+  height: 500px;
+  width: 100%;
+}
+
+.chart-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.chart-type-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #333;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.chart-type-select {
+  min-width: 220px;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fff;
+  color: #222;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.chart-type-select:hover {
+  border-color: #888;
+}
+
+.chart-type-select:focus {
+  outline: 2px solid #2563eb;
+  outline-offset: 1px;
+}
+
+.chart-action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.chart-copy-btn {
+  padding: 8px 16px;
+  border: 1px solid #2563eb;
+  border-radius: 6px;
+  background: #fff;
+  color: #2563eb;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.chart-copy-btn:hover:not(:disabled) {
+  background: #eff6ff;
+}
+
+.chart-copy-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.chart-excel-btn {
+  padding: 8px 16px;
+  border: 1px solid #15803d;
+  border-radius: 6px;
+  background: #fff;
+  color: #15803d;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.chart-excel-btn:hover:not(:disabled) {
+  background: #f0fdf4;
+}
+
+.chart-excel-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.chart-copy-message {
+  margin: 0 0 12px;
+  color: #166534;
+  font-size: 0.9rem;
+}
+
+.chart-copy-message.error {
+  color: #b91c1c;
+}
+
+.product-chart-root {
+  width: 100%;
+  height: 100%;
+}
+
+.chart-wrap {
+  height: 400px;
+  width: 100%;
+  margin-bottom: 32px;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.chart-wrap:has(.chart-multi) {
+  height: 420px;
+}
+
+.chart-wrap:has(.chart-pentagon) {
+  height: 560px;
+}
+
+.chart-multi {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  height: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+.chart-multi-item {
+  min-width: 0;
+  height: 100%;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.chart-pentagon {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.chart-pentagon-lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.chart-pentagon-item {
+  position: absolute;
+  z-index: 1;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  background: #fff;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
