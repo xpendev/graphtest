@@ -1,3 +1,10 @@
+/**
+ * 遷移ネットワーク用のデータ定義・生成。
+ *
+ * 現状は検証用のモック（固定ダミー）です。
+ * 本番では DB / API からカテゴリ・前期当期値・遷移件数などを取得し、
+ * 同じ型（CytoscapeNetworkNode / CytoscapeNetworkEdge）に変換して渡す想定です。
+ */
 export type CytoscapeNetworkNode = {
   id: string
   label: string

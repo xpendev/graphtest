@@ -11,80 +11,53 @@
 npm run dev
 ```
 
-| URL | フォルダ | 実装 |
-| --- | --- | --- |
-| `/transition-network` | [`src/transitionNetworkScratch/`](../src/transitionNetworkScratch/) | スクラッチ（React + SVG）・見た目の基準 |
-| `/transition-network/cytoscape` | [`src/transitionNetworkCytoscape/`](../src/transitionNetworkCytoscape/) | [Cytoscape.js](https://js.cytoscape.org/)（無料） |
-| `/transition-network/gojs` | [`src/transitionNetworkGoJs/`](../src/transitionNetworkGoJs/) | [GoJS](https://gojs.net/)（評価版・有償） |
-
-`/` はスクラッチ版へリダイレクトします。
+| URL | フォルダ | 実装 | 詳細 |
+| --- | --- | --- | --- |
+| `/` | [`src/HomePage.tsx`](../src/HomePage.tsx) | トップ（実装へのリンクのみ） | — |
+| `/transition-network` | [`src/transitionNetworkScratch/`](../src/transitionNetworkScratch/) | スクラッチ（React + SVG）・見た目の基準 | [component-scratch.md](./component-scratch.md) |
+| `/transition-network/cytoscape` | [`src/transitionNetworkCytoscape/`](../src/transitionNetworkCytoscape/) | [Cytoscape.js](https://js.cytoscape.org/)（無料） | [component-cytoscape.md](./component-cytoscape.md) |
+| `/transition-network/gojs` | [`src/transitionNetworkGoJs/`](../src/transitionNetworkGoJs/) | [GoJS](https://gojs.net/)（評価版・有償） | [component-gojs.md](./component-gojs.md) |
 
 ## フォルダ構成（作成量の目安）
 
 ```
 src/
 ├── main.tsx                         # ルーティングのみ
-├── transitionNetworkScratch/        # スクラッチ（10 files）
+├── HomePage.tsx                     # トップ（リンク選択）
+├── index.css                        # ページ枠の共通 tn-*（導入先では不要想定）
+├── transitionNetworkScratch/        # スクラッチ（6 files）
 │   ├── ScratchPage.tsx
-│   ├── ScratchView.tsx
 │   ├── ScratchGraph.tsx
-│   ├── ScratchSummary.tsx
-│   ├── ScratchEdgeControl.tsx
-│   ├── ScratchNodeControl.tsx
-│   ├── scratchLayout.ts
+│   ├── scratchStyles.ts
+│   ├── scratchHelpers.ts
 │   ├── scratchData.ts
-│   ├── scratchPng.ts
-│   └── scratch.css
-├── transitionNetworkCytoscape/      # Cytoscape（6 files）
+│   └── scratchPng.ts
+├── transitionNetworkCytoscape/      # Cytoscape（4 files）
 │   ├── CytoscapePage.tsx
-│   ├── CytoscapeView.tsx
-│   ├── CytoscapeFrame.tsx
-│   ├── cytoscapeLayout.ts
-│   ├── cytoscapeData.ts
-│   └── cytoscape.css
-└── transitionNetworkGoJs/           # GoJS（6 files）
+│   ├── cytoscapeStyles.ts
+│   ├── cytoscapeHelpers.ts
+│   └── cytoscapeData.ts
+└── transitionNetworkGoJs/           # GoJS（4 files）
     ├── GoJsPage.tsx
-    ├── GoJsView.tsx
-    ├── GoJsFrame.tsx
-    ├── goJsLayout.ts
-    ├── goJsData.ts
-    └── goJs.css
+    ├── goJsStyles.ts
+    ├── goJsHelpers.ts
+    └── goJsData.ts
 ```
 
-### 方針
-
-- **共通コンポーネントは使わない**
-- データ・レイアウト・Frame（サマリ／スライダー枠）も各フォルダに複製し、名前を分けている
-  - 例: `buildScratchNetwork` / `buildCytoscapeNetwork` / `buildGoJsNetwork`
-- フォルダを見れば、その方式の実装量とファイル構成が一目で分かる
-
-### スクラッチ（見た目の基準）
-
-| ファイル | 役割 |
+| 実装 | 構成 |
 | --- | --- |
-| `ScratchPage.tsx` | ページ・PNG 操作 |
-| `ScratchView.tsx` | 状態管理と組み立て |
-| `ScratchGraph.tsx` | 中央 SVG（ノード・線・圏外矢印・ツールチップ） |
-| `ScratchSummary.tsx` | 左上サマリ |
-| `ScratchEdgeControl.tsx` | 右上：表示最小値スライダー |
-| `ScratchNodeControl.tsx` | 下：ノード数スライダー |
-| `scratchLayout.ts` | 楕円配置・エッジ幾何 |
-| `scratchData.ts` | ダミーデータ |
-| `scratchPng.ts` | SVG → PNG |
-| `scratch.css` | スタイル |
+| スクラッチ | `Page` + `Graph`（SVG）+ `Styles` / `Helpers` / `Data` / `Png` |
+| Cytoscape | `Page` + `Styles` / `Helpers` / `Data` |
+| GoJS | `Page` + `Styles` / `Helpers` / `Data` |
 
-### Cytoscape / GoJS（各 6 ファイル）
+### 方針（3実装共通）
 
-| ファイル | 役割 |
-| --- | --- |
-| `*Page.tsx` | ページ・PNG ダウンロード |
-| `*View.tsx` | ライブラリによるグラフ描画 |
-| `*Frame.tsx` | サマリ＋スライダー枠 |
-| `*Layout.ts` | 楕円座標・ラベル整形・フィルタ |
-| `*Data.ts` | ダミーデータ（各フォルダ用にリネーム） |
-| `*.css` | ページ＋キャンバス用スタイル |
+- **共通コンポーネントは使わない**（データ・Helpers・Styles も各フォルダに複製）
+- UI は各 `*Page.tsx` に集約（必要になったら後から分割）
+- グラフ見た目は `*Styles.ts`（専用 CSS なし）
+- ページ枠は導入先の Tailwind / Emotion に寄せる想定（スパイクでは `index.css` の `tn-*`）
 
-## 画面構成
+## 画面構成（3実装共通）
 
 ```
 ┌──────────────────────────────┬─────────────────────────────┐

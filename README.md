@@ -14,15 +14,21 @@ npm install
 npm run dev
 ```
 
-通常は [http://localhost:5173](http://localhost:5173) を開きます（`/` はスクラッチ版へリダイレクト）。
+通常は [http://localhost:5173](http://localhost:5173) を開きます（`/` は実装選択のリンク一覧）。
 
 | URL | 内容 |
 | --- | --- |
+| `/` | トップ（実装へのリンクのみ） |
 | `/transition-network` | スクラッチ（React + SVG） |
 | `/transition-network/cytoscape` | Cytoscape.js（無料） |
 | `/transition-network/gojs` | GoJS（評価版・有償） |
 
-詳細: [`docs/transition-network.md`](docs/transition-network.md)
+詳細:
+
+- 全体: [`docs/transition-network.md`](docs/transition-network.md)
+- スクラッチ: [`docs/component-scratch.md`](docs/component-scratch.md)
+- Cytoscape: [`docs/component-cytoscape.md`](docs/component-cytoscape.md)
+- GoJS: [`docs/component-gojs.md`](docs/component-gojs.md)
 
 ## その他のコマンド
 
@@ -33,11 +39,11 @@ npm run dev
 
 ## 実装フォルダ
 
-- スクラッチ（10 files）: [`src/transitionNetworkScratch/`](src/transitionNetworkScratch/)
-- Cytoscape（6 files）: [`src/transitionNetworkCytoscape/`](src/transitionNetworkCytoscape/)
-- GoJS（6 files）: [`src/transitionNetworkGoJs/`](src/transitionNetworkGoJs/)
+- スクラッチ（6 files）: [`src/transitionNetworkScratch/`](src/transitionNetworkScratch/)
+- Cytoscape（4 files）: [`src/transitionNetworkCytoscape/`](src/transitionNetworkCytoscape/)
+- GoJS（4 files）: [`src/transitionNetworkGoJs/`](src/transitionNetworkGoJs/)
 
-共通コンポーネントは使わず、実装ごとにフォルダを分離しています。
+共通コンポーネントは使わず、実装ごとにフォルダを分離しています。UI は各 `*Page.tsx` に集約し、グラフ見た目は `*Styles.ts`（専用 CSS なし）です。
 
 ## 注意
 

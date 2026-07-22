@@ -9,7 +9,8 @@ import {
   type LaidOutEdge,
   type LaidOutNode,
   type TooltipState,
-} from './scratchLayout'
+} from './scratchHelpers'
+import { scratchStyles } from './scratchStyles'
 
 type ScratchGraphProps = {
   nodes: LaidOutNode[]
@@ -50,7 +51,10 @@ export function ScratchGraph({
             markerHeight="7"
             orient="auto-start-reverse"
           >
-            <path d="M 0 1.5 L 9 5 L 0 8.5 Z" fill="#5b9fd4" />
+            <path
+              d="M 0 1.5 L 9 5 L 0 8.5 Z"
+              fill={scratchStyles.arrowMarkerFill}
+            />
           </marker>
           <marker
             id="tn-arrow-ext"
@@ -61,24 +65,46 @@ export function ScratchGraph({
             markerHeight="6"
             orient="auto-start-reverse"
           >
-            <path d="M 0 1.5 L 9 5 L 0 8.5 Z" fill="#7eb6de" />
+            <path
+              d="M 0 1.5 L 9 5 L 0 8.5 Z"
+              fill={scratchStyles.arrowExtMarkerFill}
+            />
           </marker>
           <linearGradient id="tn-node-fill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#6eb0d8" />
-            <stop offset="100%" stopColor="#3d7fa8" />
+            <stop
+              offset="0%"
+              stopColor={scratchStyles.nodeGradient.start}
+            />
+            <stop
+              offset="100%"
+              stopColor={scratchStyles.nodeGradient.end}
+            />
           </linearGradient>
           <linearGradient id="tn-node-fill-hover" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#8bc4e4" />
-            <stop offset="100%" stopColor="#4f96bd" />
+            <stop
+              offset="0%"
+              stopColor={scratchStyles.nodeGradientHover.start}
+            />
+            <stop
+              offset="100%"
+              stopColor={scratchStyles.nodeGradientHover.end}
+            />
           </linearGradient>
         </defs>
 
-        <rect width={VIEW_W} height={VIEW_H} fill="#1a1f24" rx="8" />
+        <rect
+          width={VIEW_W}
+          height={VIEW_H}
+          fill={scratchStyles.canvasBg}
+          rx="8"
+        />
 
         {edges.map(({ edge, fromLabel, toLabel, geom }) => {
           const key = `${edge.from}-${edge.to}`
           const active = hoverEdgeKey === key
-          const strokeColor = active ? '#9fd0ef' : '#5b9fd4'
+          const strokeColor = active
+            ? scratchStyles.edgeStrokeHover
+            : scratchStyles.edgeStroke
           const strokeWidth = Math.min(4, 1.2 + Math.abs(edge.value) / 400)
 
           return (
@@ -94,6 +120,11 @@ export function ScratchGraph({
                 opacity={0.95}
                 pointerEvents="none"
               />
+              {/*
+                ホバー用ヒット領域。
+                React の onMouseEnter / onMouseLeave（SVG 要素上のマウスイベント）。
+                jQuery ではない。
+              */}
               <line
                 x1={geom.start.x}
                 y1={geom.start.y}
@@ -118,7 +149,7 @@ export function ScratchGraph({
               <text
                 x={geom.labelPos.x}
                 y={geom.labelPos.y}
-                fill="#e8eef3"
+                fill={scratchStyles.edgeLabelFill}
                 fontSize={11}
                 textAnchor="middle"
                 dominantBaseline="middle"
@@ -149,7 +180,7 @@ export function ScratchGraph({
                     y1={ext.lineStart.y}
                     x2={ext.lineEnd.x}
                     y2={ext.lineEnd.y}
-                    stroke="#7eb6de"
+                    stroke={scratchStyles.externalStroke}
                     strokeWidth={1.4}
                     markerEnd="url(#tn-arrow-ext)"
                     pointerEvents="none"
@@ -157,7 +188,7 @@ export function ScratchGraph({
                   <text
                     x={ext.label.x}
                     y={ext.label.y}
-                    fill="#d7e6f2"
+                    fill={scratchStyles.externalLabelFill}
                     fontSize={11}
                     textAnchor="middle"
                     dominantBaseline="middle"
@@ -168,6 +199,11 @@ export function ScratchGraph({
                 </>
               ) : null}
 
+              {/*
+                ノードホバー。
+                React の onMouseEnter / onMouseLeave（SVG 要素上のマウスイベント）。
+                jQuery ではない。
+              */}
               <ellipse
                 cx={node.center.x}
                 cy={node.center.y}
@@ -176,7 +212,11 @@ export function ScratchGraph({
                 fill={
                   active ? 'url(#tn-node-fill-hover)' : 'url(#tn-node-fill)'
                 }
-                stroke={active ? '#c5e6f8' : '#9fd0ef'}
+                stroke={
+                  active
+                    ? scratchStyles.nodeStrokeHover
+                    : scratchStyles.nodeStroke
+                }
                 strokeWidth={active ? 2 : 1}
                 style={{ cursor: 'pointer' }}
                 onMouseEnter={() => {
@@ -197,7 +237,7 @@ export function ScratchGraph({
               <text
                 x={node.center.x}
                 y={node.center.y - 16}
-                fill="#fff"
+                fill={scratchStyles.nodeTitleFill}
                 fontSize={12}
                 fontWeight={600}
                 textAnchor="middle"
@@ -208,7 +248,7 @@ export function ScratchGraph({
               <text
                 x={node.center.x}
                 y={node.center.y + 2}
-                fill="#f2f7fb"
+                fill={scratchStyles.nodeBodyFill}
                 fontSize={11}
                 textAnchor="middle"
                 pointerEvents="none"
@@ -218,7 +258,7 @@ export function ScratchGraph({
               <text
                 x={node.center.x}
                 y={node.center.y + 18}
-                fill="#d4e8f6"
+                fill={scratchStyles.nodeDeltaFill}
                 fontSize={11}
                 textAnchor="middle"
                 pointerEvents="none"
