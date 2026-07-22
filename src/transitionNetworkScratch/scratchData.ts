@@ -1,4 +1,4 @@
-export type TransitionNode = {
+export type ScratchNode = {
   id: string
   label: string
   before: number
@@ -7,7 +7,7 @@ export type TransitionNode = {
   external: number
 }
 
-export type TransitionEdge = {
+export type ScratchEdge = {
   from: string
   to: string
   value: number
@@ -25,7 +25,7 @@ export const NODE_COUNT_MIN = 2
 export const NODE_COUNT_MAX = 8
 
 /** 最大8ノード分のマスタ（先頭から count 個使う） */
-const NODE_POOL: TransitionNode[] = [
+const NODE_POOL: ScratchNode[] = [
   {
     id: 'other',
     label: 'その他',
@@ -85,7 +85,7 @@ const NODE_POOL: TransitionNode[] = [
 ]
 
 /** 候補エッジ（両端が選ばれたノードに含まれるものだけ使用） */
-const EDGE_POOL: TransitionEdge[] = [
+const EDGE_POOL: ScratchEdge[] = [
   { from: 'other', to: 'other-unselected', value: 1151 },
   { from: 'other', to: 'cat-a', value: 420 },
   { from: 'other', to: 'cat-b', value: 280 },
@@ -108,15 +108,15 @@ const EDGE_POOL: TransitionEdge[] = [
   { from: 'cat-a', to: 'cat-f', value: 130 },
 ]
 
-export function isGrayEdge(edge: TransitionEdge): boolean {
+export function isGrayEdge(edge: ScratchEdge): boolean {
   if (edge.muted === true) return true
   if (edge.muted === false) return false
   return edge.value < GRAY_EDGE_THRESHOLD
 }
 
-export function buildTransitionNetwork(count: number): {
-  nodes: TransitionNode[]
-  edges: TransitionEdge[]
+export function buildScratchNetwork(count: number): {
+  nodes: ScratchNode[]
+  edges: ScratchEdge[]
 } {
   const n = Math.min(
     NODE_COUNT_MAX,

@@ -1,4 +1,4 @@
-export function TransitionNetworkSummary() {
+export function ScratchSummary() {
   return (
     <aside className="tn-summary" aria-label="サマリ">
       <div className="tn-summary-badge">

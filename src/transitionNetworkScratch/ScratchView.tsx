@@ -1,17 +1,17 @@
 import { useMemo, useState } from 'react'
-import { buildTransitionNetwork } from '../data/transitionNetworkData'
-import { TransitionNetworkEdgeControl } from './TransitionNetworkEdgeControl'
-import { TransitionNetworkGraph } from './TransitionNetworkGraph'
-import { TransitionNetworkNodeControl } from './TransitionNetworkNodeControl'
-import { TransitionNetworkSummary } from './TransitionNetworkSummary'
+import { buildScratchNetwork } from './scratchData'
+import { ScratchEdgeControl } from './ScratchEdgeControl'
+import { ScratchGraph } from './ScratchGraph'
+import { ScratchNodeControl } from './ScratchNodeControl'
+import { ScratchSummary } from './ScratchSummary'
 import {
   EDGE_MIN_DEFAULT,
   layoutEdges,
   layoutNodes,
   type TooltipState,
-} from './layout'
+} from './scratchLayout'
 
-export function TransitionNetworkView() {
+export function ScratchView() {
   const [nodeCount, setNodeCount] = useState(6)
   const [edgeMinAbs, setEdgeMinAbs] = useState(EDGE_MIN_DEFAULT)
   const [tooltip, setTooltip] = useState<TooltipState | null>(null)
@@ -19,7 +19,7 @@ export function TransitionNetworkView() {
   const [hoverNodeId, setHoverNodeId] = useState<string | null>(null)
 
   const network = useMemo(
-    () => buildTransitionNetwork(nodeCount),
+    () => buildScratchNetwork(nodeCount),
     [nodeCount],
   )
   const nodes = useMemo(() => layoutNodes(network.nodes), [network.nodes])
@@ -34,9 +34,9 @@ export function TransitionNetworkView() {
 
   return (
     <div className="transition-network">
-      <div className="tn-chrome">
-        <TransitionNetworkSummary />
-        <TransitionNetworkEdgeControl
+      <div className="tn-top-row">
+        <ScratchSummary />
+        <ScratchEdgeControl
           edgeMinAbs={edgeMinAbs}
           onChange={(value) => {
             setTooltip(null)
@@ -46,7 +46,7 @@ export function TransitionNetworkView() {
         />
       </div>
 
-      <TransitionNetworkGraph
+      <ScratchGraph
         nodes={nodes}
         edges={visibleEdges}
         edgeMinAbs={edgeMinAbs}
@@ -63,7 +63,7 @@ export function TransitionNetworkView() {
         }}
       />
 
-      <TransitionNetworkNodeControl
+      <ScratchNodeControl
         nodeCount={nodeCount}
         onChange={(value) => {
           setTooltip(null)

@@ -1,4 +1,4 @@
-import type { TransitionEdge, TransitionNode } from '../data/transitionNetworkData'
+import type { ScratchEdge, ScratchNode } from './scratchData'
 
 export const VIEW_W = 1200
 export const VIEW_H = 560
@@ -22,10 +22,10 @@ export type TooltipState = {
   lines: string[]
 }
 
-export type LaidOutNode = TransitionNode & { center: Point }
+export type LaidOutNode = ScratchNode & { center: Point }
 
 export type LaidOutEdge = {
-  edge: TransitionEdge
+  edge: ScratchEdge
   fromLabel: string
   toLabel: string
   geom: {
@@ -132,13 +132,13 @@ export function externalArrow(
   }
 }
 
-export function layoutNodes(nodes: TransitionNode[]): LaidOutNode[] {
+export function layoutNodes(nodes: ScratchNode[]): LaidOutNode[] {
   const centers = nodeCenters(nodes.length)
   return nodes.map((node, i) => ({ ...node, center: centers[i] }))
 }
 
 export function layoutEdges(
-  edges: TransitionEdge[],
+  edges: ScratchEdge[],
   nodes: LaidOutNode[],
 ): LaidOutEdge[] {
   const byId = new Map(nodes.map((n) => [n.id, n]))

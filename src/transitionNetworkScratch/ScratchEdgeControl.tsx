@@ -1,14 +1,14 @@
-import { EDGE_MIN_MAX } from './layout'
+import { EDGE_MIN_MAX } from './scratchLayout'
 
-type TransitionNetworkEdgeControlProps = {
+type ScratchEdgeControlProps = {
   edgeMinAbs: number
   onChange: (value: number) => void
 }
 
-export function TransitionNetworkEdgeControl({
+export function ScratchEdgeControl({
   edgeMinAbs,
   onChange,
-}: TransitionNetworkEdgeControlProps) {
+}: ScratchEdgeControlProps) {
   return (
     <aside className="tn-top-control" aria-label="表示制御">
       <div className="tn-top-control-source">

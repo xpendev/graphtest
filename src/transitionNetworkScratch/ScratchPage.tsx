@@ -1,20 +1,20 @@
 import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  copySvgToClipboard,
-  downloadSvgAsPng,
-} from '../utils/copyChartImage'
-import { TransitionNetworkView } from '../transitionNetwork/TransitionNetworkView'
-import '../transitionNetwork/transitionNetwork.css'
+  copyScratchSvgToClipboard,
+  downloadScratchSvgAsPng,
+} from './scratchPng'
+import { ScratchView } from './ScratchView'
+import './scratch.css'
 
-export function TransitionNetworkPage() {
+export function ScratchPage() {
   const rootRef = useRef<HTMLDivElement>(null)
   const [message, setMessage] = useState<string | null>(null)
   const [isCopying, setIsCopying] = useState(false)
   const [isDownloading, setIsDownloading] = useState(false)
 
   const getSvg = () => {
-    const svg = rootRef.current?.querySelector('svg.transition-network-svg')
+    const svg = rootRef.current?.querySelector('svg.scratch-network-svg')
     if (!(svg instanceof SVGSVGElement)) {
       throw new Error('コピー対象のグラフが見つかりません。')
     }
@@ -28,12 +28,15 @@ export function TransitionNetworkPage() {
           <p className="tn-page-eyebrow">検証用スパイク</p>
           <h1 className="tn-page-title">遷移ネットワーク</h1>
           <p className="tn-page-subtitle">
-            AG Charts ではなく React + SVG で実装したカテゴリ間遷移図です。
+            スクラッチ（React + SVG）
           </p>
         </div>
         <div className="tn-page-actions">
-          <Link className="tn-page-link" to="/">
-            AG Charts デモへ戻る
+          <Link className="tn-page-link" to="/transition-network/cytoscape">
+            Cytoscape 版へ
+          </Link>
+          <Link className="tn-page-link" to="/transition-network/gojs">
+            GoJS 版へ
           </Link>
           <button
             type="button"
@@ -43,7 +46,7 @@ export function TransitionNetworkPage() {
               setIsCopying(true)
               setMessage(null)
               try {
-                await copySvgToClipboard(getSvg())
+                await copyScratchSvgToClipboard(getSvg())
                 setMessage('PNGをコピーしました。Ctrl+V で貼り付けできます。')
               } catch (error) {
                 setMessage(
@@ -66,7 +69,7 @@ export function TransitionNetworkPage() {
               setIsDownloading(true)
               setMessage(null)
               try {
-                await downloadSvgAsPng(getSvg(), 'transition-network')
+                await downloadScratchSvgAsPng(getSvg(), 'transition-network')
                 setMessage('PNGをダウンロードしました。')
               } catch (error) {
                 setMessage(
@@ -98,7 +101,7 @@ export function TransitionNetworkPage() {
       ) : null}
 
       <div ref={rootRef} className="tn-page-stage">
-        <TransitionNetworkView />
+        <ScratchView />
       </div>
     </main>
   )

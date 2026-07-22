@@ -1,14 +1,14 @@
-import { NODE_COUNT_MAX, NODE_COUNT_MIN } from '../data/transitionNetworkData'
+import { NODE_COUNT_MAX, NODE_COUNT_MIN } from './scratchData'
 
-type TransitionNetworkNodeControlProps = {
+type ScratchNodeControlProps = {
   nodeCount: number
   onChange: (value: number) => void
 }
 
-export function TransitionNetworkNodeControl({
+export function ScratchNodeControl({
   nodeCount,
   onChange,
-}: TransitionNetworkNodeControlProps) {
+}: ScratchNodeControlProps) {
   return (
     <div className="tn-bottom-control">
       <label className="tn-bottom-control-label" htmlFor="tn-node-count">

@@ -9,9 +9,9 @@ import {
   type LaidOutEdge,
   type LaidOutNode,
   type TooltipState,
-} from './layout'
+} from './scratchLayout'
 
-type TransitionNetworkGraphProps = {
+type ScratchGraphProps = {
   nodes: LaidOutNode[]
   edges: LaidOutEdge[]
   edgeMinAbs: number
@@ -22,7 +22,7 @@ type TransitionNetworkGraphProps = {
   onHoverNode: (id: string | null, tooltip: TooltipState | null) => void
 }
 
-export function TransitionNetworkGraph({
+export function ScratchGraph({
   nodes,
   edges,
   edgeMinAbs,
@@ -31,11 +31,11 @@ export function TransitionNetworkGraph({
   hoverNodeId,
   onHoverEdge,
   onHoverNode,
-}: TransitionNetworkGraphProps) {
+}: ScratchGraphProps) {
   return (
     <div className="tn-graph-area">
       <svg
-        className="transition-network-svg"
+        className="scratch-network-svg"
         viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
         role="img"
         aria-label="カテゴリ間遷移ネットワーク"
