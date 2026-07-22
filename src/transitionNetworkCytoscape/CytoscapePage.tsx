@@ -1,13 +1,13 @@
 import cytoscape, { type Core } from 'cytoscape'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { buildCytoscapeNetwork } from './cytoscapeData'
+import { buildCytoscapeNetwork, isGrayEdge } from './cytoscapeData'
 import {
   EDGE_MIN_DEFAULT,
   EDGE_MIN_MAX,
+  buildExternalElements,
   edgeTooltipContent,
-  nodePositions,
-  filterCytoscapeEdges,
+  ellipsePositions,
   formatInt,
   NODE_SLIDER,
   nodeLabelLines,
@@ -25,11 +25,12 @@ type TooltipState = {
 export function CytoscapePage() {
   const hostRef = useRef<HTMLDivElement>(null)
   const cyRef = useRef<Core | null>(null)
-  const [nodeCount, setNodeCount] = useState(6)
+  const [nodeCount, setNodeCount] = useState(30)
   const [edgeMinAbs, setEdgeMinAbs] = useState(EDGE_MIN_DEFAULT)
   const [tooltip, setTooltip] = useState<TooltipState | null>(null)
   const [message, setMessage] = useState<string | null>(null)
   const [isDownloading, setIsDownloading] = useState(false)
+  const [isCopying, setIsCopying] = useState(false)
   // React の setState を Cytoscape イベントから呼ぶための最新参照。
   // cy.on(...) はインスタンス生成時に一度だけ登録するため、
   // クロージャに古い setTooltip が残らないよう ref 経由にする。
@@ -40,10 +41,6 @@ export function CytoscapePage() {
     () => buildCytoscapeNetwork(nodeCount),
     [nodeCount],
   )
-  const visibleEdges = useMemo(
-    () => filterCytoscapeEdges(network.edges, edgeMinAbs),
-    [network.edges, edgeMinAbs],
-  )
   const nodeById = useMemo(
     () => new Map(network.nodes.map((node) => [node.id, node])),
     [network.nodes],
@@ -53,7 +50,8 @@ export function CytoscapePage() {
     if (!hostRef.current) return
 
     // Cytoscape に渡す要素（ノード／エッジ）。見た目は cytoscapeStyles.ts。
-    const positions = nodePositions(network.nodes.length)
+    // 圏外矢印は「透明ゴーストノード + エッジ」で表現（エッジは両端ノード必須のため）。
+    const positions = ellipsePositions(network.nodes.length)
     const elements: cytoscape.ElementDefinition[] = [
       ...network.nodes.map((node, index) => ({
         group: 'nodes' as const,
@@ -67,11 +65,13 @@ export function CytoscapePage() {
         },
         position: positions[index],
       })),
-      ...visibleEdges.map((edge) => {
+      ...network.edges.map((edge) => {
         const fromLabel = nodeById.get(edge.from)?.label ?? edge.from
         const toLabel = nodeById.get(edge.to)?.label ?? edge.to
+        const muted = isGrayEdge(edge, edgeMinAbs)
         return {
           group: 'edges' as const,
+          classes: muted ? 'muted' : undefined,
           data: {
             id: `${edge.from}->${edge.to}`,
             source: edge.from,
@@ -83,6 +83,7 @@ export function CytoscapePage() {
           },
         }
       }),
+      ...buildExternalElements(network.nodes, positions, edgeMinAbs),
     ]
 
     if (!cyRef.current) {
@@ -160,11 +161,24 @@ export function CytoscapePage() {
 
         const sourcePos = ele.source().renderedPosition()
         const targetPos = ele.target().renderedPosition()
-        const tip = edgeTooltipContent(
-          String(ele.data('fromLabel') ?? ''),
-          String(ele.data('toLabel') ?? ''),
-          Number(ele.data('value') ?? 0),
-        )
+        const kind = String(ele.data('kind') ?? '')
+        const fromLabel = String(ele.data('fromLabel') ?? '')
+        const toLabel = String(ele.data('toLabel') ?? '')
+        const tip =
+          kind === 'external'
+            ? {
+                // 圏外側の文字は出さず、実ノード側だけ残す（→XXX / XXX→）
+                title:
+                  fromLabel === '圏外' ? `→${toLabel}` : `${fromLabel}→`,
+                lines: [
+                  `件数: ${formatInt(Number(ele.data('value') ?? 0))}`,
+                ],
+              }
+            : edgeTooltipContent(
+                fromLabel,
+                toLabel,
+                Number(ele.data('value') ?? 0),
+              )
         setTooltipRef.current({
           xPct: ((sourcePos.x + targetPos.x) / 2 / container.clientWidth) * 100,
           yPct: ((sourcePos.y + targetPos.y) / 2 / container.clientHeight) * 100,
@@ -186,7 +200,7 @@ export function CytoscapePage() {
       cy.layout({ name: 'preset' }).run()
       cy.fit(undefined, 40)
     }
-  }, [network.nodes, visibleEdges, nodeById])
+  }, [network.nodes, network.edges, nodeById, edgeMinAbs])
 
   useEffect(() => {
     return () => {
@@ -227,6 +241,40 @@ export function CytoscapePage() {
     }
   }
 
+  const copyPng = async () => {
+    setIsCopying(true)
+    setMessage(null)
+    try {
+      const cy = cyRef.current
+      if (!cy) {
+        throw new Error('グラフの準備ができていません。')
+      }
+      if (!navigator.clipboard?.write) {
+        throw new Error(
+          'このブラウザではクリップボードへの画像コピーに対応していません。',
+        )
+      }
+      const png = cy.png({
+        output: 'blob',
+        bg: '#1a1f24',
+        full: true,
+        scale: 2,
+      }) as Blob
+      await navigator.clipboard.write([
+        new ClipboardItem({ 'image/png': png }),
+      ])
+      setMessage('PNGをコピーしました。Ctrl+V で貼り付けできます。')
+    } catch (error) {
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : 'PNGコピーに失敗しました。',
+      )
+    } finally {
+      setIsCopying(false)
+    }
+  }
+
   return (
     <main className="tn-page">
       <header className="tn-page-header">
@@ -248,6 +296,19 @@ export function CytoscapePage() {
           <Link className="tn-page-link" to="/transition-network/gojs">
             GoJS 版へ
           </Link>
+          <Link className="tn-page-link" to="/transition-network/agcharts">
+            AG Charts 版へ
+          </Link>
+          <button
+            type="button"
+            className="tn-page-btn"
+            disabled={isCopying}
+            onClick={() => {
+              void copyPng()
+            }}
+          >
+            {isCopying ? 'コピー中…' : 'PNGをコピー'}
+          </button>
           <button
             type="button"
             className="tn-page-btn"

@@ -19,7 +19,7 @@ export function ScratchPage() {
   const [message, setMessage] = useState<string | null>(null)
   const [isCopying, setIsCopying] = useState(false)
   const [isDownloading, setIsDownloading] = useState(false)
-  const [nodeCount, setNodeCount] = useState(6)
+  const [nodeCount, setNodeCount] = useState(30)
   const [edgeMinAbs, setEdgeMinAbs] = useState(EDGE_MIN_DEFAULT)
   const [tooltip, setTooltip] = useState<TooltipState | null>(null)
   const [hoverEdgeKey, setHoverEdgeKey] = useState<string | null>(null)
@@ -33,10 +33,6 @@ export function ScratchPage() {
   const edges = useMemo(
     () => layoutEdges(network.edges, nodes),
     [network.edges, nodes],
-  )
-  const visibleEdges = useMemo(
-    () => edges.filter(({ edge }) => Math.abs(edge.value) >= edgeMinAbs),
-    [edges, edgeMinAbs],
   )
 
   const getSvg = () => {
@@ -64,6 +60,9 @@ export function ScratchPage() {
           </Link>
           <Link className="tn-page-link" to="/transition-network/gojs">
             GoJS 版へ
+          </Link>
+          <Link className="tn-page-link" to="/transition-network/agcharts">
+            AG Charts 版へ
           </Link>
           <button
             type="button"
@@ -174,7 +173,7 @@ export function ScratchPage() {
 
           <ScratchGraph
             nodes={nodes}
-            edges={visibleEdges}
+            edges={edges}
             edgeMinAbs={edgeMinAbs}
             tooltip={tooltip}
             hoverEdgeKey={hoverEdgeKey}

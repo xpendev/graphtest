@@ -21,6 +21,17 @@ export const cytoscapeStyles = [
     },
   },
   {
+    // 圏外矢印の外側端点（透明。エッジの接続先としてだけ使う）
+    selector: 'node.external-ghost',
+    style: {
+      width: 1,
+      height: 1,
+      opacity: 0,
+      label: '',
+      events: 'no' as const,
+    },
+  },
+  {
     selector: 'node.hover',
     style: {
       'border-width': 2,
@@ -31,8 +42,9 @@ export const cytoscapeStyles = [
   {
     selector: 'edge',
     style: {
+      // 件数の大小が線幅で分かるようスケール（極少〜極多で約 1〜8）
       width: (ele: EdgeSingular) =>
-        Math.min(4, 1.2 + Math.abs(Number(ele.data('value'))) / 400),
+        Math.min(8, 0.9 + Math.sqrt(Math.abs(Number(ele.data('value')))) / 6),
       'line-color': '#5b9fd4',
       'target-arrow-color': '#5b9fd4',
       'target-arrow-shape': 'triangle' as const,
@@ -46,12 +58,55 @@ export const cytoscapeStyles = [
     },
   },
   {
+    // Scratch の圏外矢印に近い見た目
+    selector: 'edge.external',
+    style: {
+      width: 1.4,
+      'line-color': '#7eb6de',
+      'target-arrow-color': '#7eb6de',
+      'target-arrow-shape': 'triangle' as const,
+      'curve-style': 'straight' as const,
+      label: 'data(label)',
+      color: '#d7e6f2',
+      'font-size': '11px',
+      'text-background-color': '#1a1f24',
+      'text-background-opacity': 0.7,
+      'text-background-padding': '2px',
+    },
+  },
+  {
     selector: 'edge.hover',
     style: {
       'line-color': '#9fd0ef',
       'target-arrow-color': '#9fd0ef',
       width: (ele: EdgeSingular) =>
-        Math.min(5, 2.2 + Math.abs(Number(ele.data('value'))) / 400),
+        Math.min(9, 1.4 + Math.sqrt(Math.abs(Number(ele.data('value')))) / 6),
+    },
+  },
+  {
+    selector: 'edge.external.hover',
+    style: {
+      width: 2.2,
+      'line-color': '#9fd0ef',
+      'target-arrow-color': '#9fd0ef',
+    },
+  },
+  {
+    // 表示最小値未満の遷移線（非表示ではなくグレー）
+    selector: 'edge.muted',
+    style: {
+      'line-color': '#6a737a',
+      'target-arrow-color': '#6a737a',
+      color: '#9aa3ab',
+      opacity: 0.55,
+    },
+  },
+  {
+    selector: 'edge.muted.hover',
+    style: {
+      'line-color': '#8a939b',
+      'target-arrow-color': '#8a939b',
+      opacity: 0.75,
     },
   },
   {

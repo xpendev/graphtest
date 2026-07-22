@@ -16,6 +16,11 @@ const links = [
     title: 'GoJS',
     note: '評価版・有償',
   },
+  {
+    to: '/transition-network/agcharts',
+    title: 'AG Charts Chord',
+    note: 'Enterprise・カテゴリ間流出入（圏外なし・最大30）',
+  },
 ] as const
 
 export function HomePage() {

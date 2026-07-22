@@ -168,6 +168,12 @@ body {
   background: #1a1f24;
 }
 
+/* AG Charts Chord 用: やや大きめの表示 */
+.tn-page-stage-agcharts {
+  height: calc(100vh - 120px);
+  min-height: 700px;
+}
+
 .transition-network {
   position: relative;
   width: 100%;
@@ -301,6 +307,17 @@ body {
 .tn-lib-canvas-host {
   width: 100%;
   height: 100%;
+}
+
+.tn-agcharts-host {
+  min-height: 0;
+  flex: 1;
+}
+
+.tn-agcharts-host > * {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 520px;
 }
 
 .tn-bottom-control {

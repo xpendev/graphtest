@@ -4,6 +4,8 @@
  * 現状は検証用のモック（固定ダミー）です。
  * 本番では DB / API からカテゴリ・前期当期値・遷移件数などを取得し、
  * 同じ型（ScratchNode / ScratchEdge）に変換して渡す想定です。
+ *
+ * ノード数上限 30（Cytoscape と同じ試し表示用）。
  */
 export type ScratchNode = {
   id: string
@@ -19,20 +21,18 @@ export type ScratchEdge = {
   to: string
   value: number
   /**
-   * true のとき線をグレー表示。
-   * 未指定時は value が GRAY_EDGE_THRESHOLD 未満ならグレー。
+   * true のとき線をグレー表示（スライダーしきい値より優先）。
+   * false のとき常に通常色。未指定時は表示最小値しきい値で判定。
    */
   muted?: boolean
 }
 
-/** この件数未満の遷移線はグレー（muted 未指定時） */
-export const GRAY_EDGE_THRESHOLD = 100
-
 export const NODE_COUNT_MIN = 2
-export const NODE_COUNT_MAX = 8
+/** 試し表示用の上限（Cytoscape / GoJS と同じ） */
+export const NODE_COUNT_MAX = 30
 
-/** 最大8ノード分のマスタ（先頭から count 個使う） */
-const NODE_POOL: ScratchNode[] = [
+/** 先頭8件は従来どおり。9件目以降は試し用の連番カテゴリ */
+const NODE_POOL_BASE: ScratchNode[] = [
   {
     id: 'other',
     label: 'その他',
@@ -91,8 +91,23 @@ const NODE_POOL: ScratchNode[] = [
   },
 ]
 
-/** 候補エッジ（両端が選ばれたノードに含まれるものだけ使用） */
-const EDGE_POOL: ScratchEdge[] = [
+const NODE_POOL_EXTRA: ScratchNode[] = Array.from(
+  { length: NODE_COUNT_MAX - NODE_POOL_BASE.length },
+  (_, i) => {
+    const n = i + 9
+    return {
+      id: `cat-${n}`,
+      label: `カテゴリ${n}`,
+      before: 100 + n * 17,
+      after: 90 + n * 19,
+      external: (n % 3 === 0 ? 1 : -1) * (10 + n * 3),
+    }
+  },
+)
+
+const NODE_POOL: ScratchNode[] = [...NODE_POOL_BASE, ...NODE_POOL_EXTRA]
+
+const EDGE_POOL_BASE: ScratchEdge[] = [
   { from: 'other', to: 'other-unselected', value: 1151 },
   { from: 'other', to: 'cat-a', value: 420 },
   { from: 'other', to: 'cat-b', value: 280 },
@@ -115,10 +130,28 @@ const EDGE_POOL: ScratchEdge[] = [
   { from: 'cat-a', to: 'cat-f', value: 130 },
 ]
 
-export function isGrayEdge(edge: ScratchEdge): boolean {
+const EDGE_POOL_EXTRA: ScratchEdge[] = NODE_POOL_EXTRA.flatMap((node, i) => {
+  const edges: ScratchEdge[] = [
+    { from: 'other', to: node.id, value: 40 + i * 7 },
+    { from: node.id, to: 'other', value: 20 + i * 3 },
+  ]
+  if (i > 0) {
+    edges.push({
+      from: NODE_POOL_EXTRA[i - 1].id,
+      to: node.id,
+      value: 15 + i * 2,
+    })
+  }
+  return edges
+})
+
+const EDGE_POOL: ScratchEdge[] = [...EDGE_POOL_BASE, ...EDGE_POOL_EXTRA]
+
+/** しきい値未満（または muted 指定）ならグレー表示対象 */
+export function isGrayEdge(edge: ScratchEdge, edgeMinAbs: number): boolean {
   if (edge.muted === true) return true
   if (edge.muted === false) return false
-  return edge.value < GRAY_EDGE_THRESHOLD
+  return Math.abs(edge.value) < edgeMinAbs
 }
 
 export function buildScratchNetwork(count: number): {

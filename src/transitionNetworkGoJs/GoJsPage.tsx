@@ -1,24 +1,30 @@
 import go from 'gojs'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { buildGoJsNetwork } from './goJsData'
+import { buildGoJsNetwork, isGrayEdge } from './goJsData'
 import {
   EDGE_MIN_DEFAULT,
   EDGE_MIN_MAX,
+  buildExternalModels,
   edgeTooltipContent,
-  nodePositions,
-  filterGoJsEdges,
+  ellipsePositions,
   formatInt,
   NODE_SLIDER,
   nodeLabelLines,
   nodeTooltipContent,
 } from './goJsHelpers'
 import {
+  buildExternalLinkTemplate,
+  buildGhostNodeTemplate,
   buildLinkTemplate,
   buildNodeTemplate,
+  EXTERNAL_LINK_STROKE,
+  EXTERNAL_LINK_STROKE_MUTED,
   GOJS_DIAGRAM_BG,
   LINK_STROKE,
   LINK_STROKE_HOVER,
+  LINK_STROKE_MUTED,
+  LINK_STROKE_MUTED_HOVER,
   NODE_FILL,
   NODE_FILL_HOVER,
   NODE_STROKE,
@@ -50,16 +56,20 @@ type LinkModel = {
   value: number
   fromLabel: string
   toLabel: string
+  category?: string
+  kind?: string
+  muted?: boolean
 }
 
 export function GoJsPage() {
   const hostRef = useRef<HTMLDivElement>(null)
   const diagramRef = useRef<go.Diagram | null>(null)
-  const [nodeCount, setNodeCount] = useState(6)
+  const [nodeCount, setNodeCount] = useState(30)
   const [edgeMinAbs, setEdgeMinAbs] = useState(EDGE_MIN_DEFAULT)
   const [tooltip, setTooltip] = useState<TooltipState | null>(null)
   const [message, setMessage] = useState<string | null>(null)
   const [isDownloading, setIsDownloading] = useState(false)
+  const [isCopying, setIsCopying] = useState(false)
   // React の setState を GoJS GraphObject コールバックから呼ぶための最新参照。
   // mouseEnter / mouseLeave はテンプレート生成時に一度だけ登録するため、
   // クロージャに古い setTooltip が残らないよう ref 経由にする。
@@ -67,42 +77,50 @@ export function GoJsPage() {
   setTooltipRef.current = setTooltip
 
   const network = useMemo(() => buildGoJsNetwork(nodeCount), [nodeCount])
-  const visibleEdges = useMemo(
-    () => filterGoJsEdges(network.edges, edgeMinAbs),
-    [network.edges, edgeMinAbs],
-  )
   const nodeById = useMemo(
     () => new Map(network.nodes.map((node) => [node.id, node])),
     [network.nodes],
   )
 
   const modelData = useMemo(() => {
-    const positions = nodePositions(network.nodes.length)
+    const positions = ellipsePositions(network.nodes.length)
+    const external = buildExternalModels(
+      network.nodes,
+      positions,
+      edgeMinAbs,
+    )
     return {
-      nodes: network.nodes.map(
-        (node, index): NodeModel => ({
-          key: node.id,
-          label: nodeLabelLines(node),
-          name: node.label,
-          before: node.before,
-          after: node.after,
-          external: node.external,
-          loc: `${positions[index].x} ${positions[index].y}`,
-        }),
-      ),
-      links: visibleEdges.map(
-        (edge): LinkModel => ({
-          key: `${edge.from}->${edge.to}`,
-          from: edge.from,
-          to: edge.to,
-          label: formatInt(edge.value),
-          value: edge.value,
-          fromLabel: nodeById.get(edge.from)?.label ?? edge.from,
-          toLabel: nodeById.get(edge.to)?.label ?? edge.to,
-        }),
-      ),
+      nodes: [
+        ...network.nodes.map(
+          (node, index): NodeModel => ({
+            key: node.id,
+            label: nodeLabelLines(node),
+            name: node.label,
+            before: node.before,
+            after: node.after,
+            external: node.external,
+            loc: `${positions[index].x} ${positions[index].y}`,
+          }),
+        ),
+        ...external.ghosts,
+      ],
+      links: [
+        ...network.edges.map(
+          (edge): LinkModel => ({
+            key: `${edge.from}->${edge.to}`,
+            from: edge.from,
+            to: edge.to,
+            label: formatInt(edge.value),
+            value: edge.value,
+            fromLabel: nodeById.get(edge.from)?.label ?? edge.from,
+            toLabel: nodeById.get(edge.to)?.label ?? edge.to,
+            muted: isGrayEdge(edge, edgeMinAbs),
+          }),
+        ),
+        ...external.links,
+      ],
     }
-  }, [network.nodes, visibleEdges, nodeById])
+  }, [network.nodes, network.edges, nodeById, edgeMinAbs])
 
   useEffect(() => {
     if (!hostRef.current) return
@@ -185,15 +203,24 @@ export function GoJsPage() {
           setTooltipRef.current(null)
         },
       })
+      diagram.nodeTemplateMap.add('ghost', buildGhostNodeTemplate())
 
-      // リンク: ホバーで線色を強調し、遷移件数ツールチップを表示
-      // 位置は始点・終点ノードの中点（リンク中央の近似）
-      diagram.linkTemplate = buildLinkTemplate({
-        mouseEnter: (_e, obj) => {
+      const linkHover = {
+        mouseEnter: (_e: go.InputEvent, obj: go.GraphObject) => {
           const link = obj.part as go.Link
           const data = link.data as LinkModel
           const path = link.findObject('PATH') as go.Shape | null
-          if (path) path.stroke = LINK_STROKE_HOVER
+          if (path) {
+            path.stroke = data.muted
+              ? LINK_STROKE_MUTED_HOVER
+              : LINK_STROKE_HOVER
+          }
+          const arrow = link.findObject('ARROW') as go.Shape | null
+          if (arrow) {
+            arrow.fill = data.muted
+              ? LINK_STROKE_MUTED_HOVER
+              : LINK_STROKE_HOVER
+          }
           const fromNode = link.fromNode
           const toNode = link.toNode
           if (!fromNode || !toNode) return
@@ -201,19 +228,43 @@ export function GoJsPage() {
           const b = toNode.getDocumentPoint(go.Spot.Center)
           const mid = new go.Point((a.x + b.x) / 2, (a.y + b.y) / 2)
           const viewPoint = diagram.transformDocToView(mid)
-          showAtViewPoint(
-            viewPoint,
-            edgeTooltipContent(data.fromLabel, data.toLabel, data.value),
-          )
+          const tip =
+            data.kind === 'external'
+              ? {
+                  title:
+                    data.fromLabel === '圏外'
+                      ? `→${data.toLabel}`
+                      : `${data.fromLabel}→`,
+                  lines: [`件数: ${formatInt(data.value)}`],
+                }
+              : edgeTooltipContent(data.fromLabel, data.toLabel, data.value)
+          showAtViewPoint(viewPoint, tip)
         },
-        // リンクからマウス離脱: 通常色に戻し、ツールチップを消す
-        mouseLeave: (_e, obj) => {
+        mouseLeave: (_e: go.InputEvent, obj: go.GraphObject) => {
           const link = obj.part as go.Link
+          const data = link.data as LinkModel
           const path = link.findObject('PATH') as go.Shape | null
-          if (path) path.stroke = LINK_STROKE
+          const arrow = link.findObject('ARROW') as go.Shape | null
+          const baseStroke =
+            data.kind === 'external'
+              ? data.muted
+                ? EXTERNAL_LINK_STROKE_MUTED
+                : EXTERNAL_LINK_STROKE
+              : data.muted
+                ? LINK_STROKE_MUTED
+                : LINK_STROKE
+          if (path) path.stroke = baseStroke
+          if (arrow) arrow.fill = baseStroke
           setTooltipRef.current(null)
         },
-      })
+      }
+
+      // リンク: ホバーで線色を強調し、遷移件数ツールチップを表示
+      diagram.linkTemplate = buildLinkTemplate(linkHover)
+      diagram.linkTemplateMap.add(
+        'external',
+        buildExternalLinkTemplate(linkHover),
+      )
 
       diagram.model = new go.GraphLinksModel({
         nodeDataArray: modelData.nodes,
@@ -273,6 +324,43 @@ export function GoJsPage() {
     }
   }
 
+  const copyPng = async () => {
+    setIsCopying(true)
+    setMessage(null)
+    try {
+      const diagram = diagramRef.current
+      if (!diagram) {
+        throw new Error('グラフの準備ができていません。')
+      }
+      if (!navigator.clipboard?.write) {
+        throw new Error(
+          'このブラウザではクリップボードへの画像コピーに対応していません。',
+        )
+      }
+      const dataUrl = diagram.makeImageData({
+        background: GOJS_DIAGRAM_BG,
+        scale: 2,
+        type: 'image/png',
+      })
+      if (typeof dataUrl !== 'string') {
+        throw new Error('画像の生成に失敗しました。')
+      }
+      const blob = await (await fetch(dataUrl)).blob()
+      await navigator.clipboard.write([
+        new ClipboardItem({ 'image/png': blob }),
+      ])
+      setMessage('PNGをコピーしました。Ctrl+V で貼り付けできます。')
+    } catch (error) {
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : 'PNGコピーに失敗しました。',
+      )
+    } finally {
+      setIsCopying(false)
+    }
+  }
+
   return (
     <main className="tn-page">
       <header className="tn-page-header">
@@ -294,6 +382,19 @@ export function GoJsPage() {
           <Link className="tn-page-link" to="/transition-network/cytoscape">
             Cytoscape 版へ
           </Link>
+          <Link className="tn-page-link" to="/transition-network/agcharts">
+            AG Charts 版へ
+          </Link>
+          <button
+            type="button"
+            className="tn-page-btn"
+            disabled={isCopying}
+            onClick={() => {
+              void copyPng()
+            }}
+          >
+            {isCopying ? 'コピー中…' : 'PNGをコピー'}
+          </button>
           <button
             type="button"
             className="tn-page-btn"

@@ -6,6 +6,7 @@ import { HomePage } from './HomePage.tsx'
 import { ScratchPage } from './transitionNetworkScratch/ScratchPage.tsx'
 import { CytoscapePage } from './transitionNetworkCytoscape/CytoscapePage.tsx'
 import { GoJsPage } from './transitionNetworkGoJs/GoJsPage.tsx'
+import { AgChartsPage } from './transitionNetworkAgCharts/AgChartsPage.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -18,6 +19,10 @@ createRoot(document.getElementById('root')!).render(
           element={<CytoscapePage />}
         />
         <Route path="/transition-network/gojs" element={<GoJsPage />} />
+        <Route
+          path="/transition-network/agcharts"
+          element={<AgChartsPage />}
+        />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

@@ -4,6 +4,8 @@
  * 現状は検証用のモック（固定ダミー）です。
  * 本番では DB / API からカテゴリ・前期当期値・遷移件数などを取得し、
  * 同じ型（CytoscapeNetworkNode / CytoscapeNetworkEdge）に変換して渡す想定です。
+ *
+ * ノード数上限 30（試し表示用。Scratch / GoJS / Cytoscape 共通）。
  */
 export type CytoscapeNetworkNode = {
   id: string
@@ -19,20 +21,18 @@ export type CytoscapeNetworkEdge = {
   to: string
   value: number
   /**
-   * true のとき線をグレー表示。
-   * 未指定時は value が GRAY_EDGE_THRESHOLD 未満ならグレー。
+   * true のとき線をグレー表示（スライダーしきい値より優先）。
+   * false のとき常に通常色。未指定時は表示最小値しきい値で判定。
    */
   muted?: boolean
 }
 
-/** この件数未満の遷移線はグレー（muted 未指定時） */
-export const GRAY_EDGE_THRESHOLD = 100
-
 export const NODE_COUNT_MIN = 2
-export const NODE_COUNT_MAX = 8
+/** Cytoscape 試し表示用の上限 */
+export const NODE_COUNT_MAX = 30
 
-/** 最大8ノード分のマスタ（先頭から count 個使う） */
-const NODE_POOL: CytoscapeNetworkNode[] = [
+/** 先頭8件は従来どおり。9件目以降は試し用の連番カテゴリ */
+const NODE_POOL_BASE: CytoscapeNetworkNode[] = [
   {
     id: 'other',
     label: 'その他',
@@ -91,8 +91,27 @@ const NODE_POOL: CytoscapeNetworkNode[] = [
   },
 ]
 
+const NODE_POOL_EXTRA: CytoscapeNetworkNode[] = Array.from(
+  { length: NODE_COUNT_MAX - NODE_POOL_BASE.length },
+  (_, i) => {
+    const n = i + 9
+    return {
+      id: `cat-${n}`,
+      label: `カテゴリ${n}`,
+      before: 100 + n * 17,
+      after: 90 + n * 19,
+      external: (n % 3 === 0 ? 1 : -1) * (10 + n * 3),
+    }
+  },
+)
+
+const NODE_POOL: CytoscapeNetworkNode[] = [
+  ...NODE_POOL_BASE,
+  ...NODE_POOL_EXTRA,
+]
+
 /** 候補エッジ（両端が選ばれたノードに含まれるものだけ使用） */
-const EDGE_POOL: CytoscapeNetworkEdge[] = [
+const EDGE_POOL_BASE: CytoscapeNetworkEdge[] = [
   { from: 'other', to: 'other-unselected', value: 1151 },
   { from: 'other', to: 'cat-a', value: 420 },
   { from: 'other', to: 'cat-b', value: 280 },
@@ -115,10 +134,69 @@ const EDGE_POOL: CytoscapeNetworkEdge[] = [
   { from: 'cat-a', to: 'cat-f', value: 130 },
 ]
 
-export function isGrayEdge(edge: CytoscapeNetworkEdge): boolean {
+/**
+ * 追加ノード向けエッジ。件数を大きくばらつかせる（極少〜極多）。
+ * 出次数もノードごとに変え、すべて同じ太さ・同じ本数にならないようにする。
+ */
+const EDGE_POOL_EXTRA: CytoscapeNetworkEdge[] = (() => {
+  const edges: CytoscapeNetworkEdge[] = []
+  const ids = NODE_POOL.map((n) => n.id)
+  const seen = new Set<string>()
+
+  // 少ないもの〜多いもの。既定しきい値(50)前後も混ぜて太さ差が分かるようにする。
+  const VALUE_TIERS = [8, 22, 45, 62, 88, 130, 210, 380, 640, 920, 1180]
+
+  const pushEdge = (from: string, to: string, value: number) => {
+    if (from === to) return
+    const key = `${from}->${to}`
+    if (seen.has(key)) return
+    seen.add(key)
+    edges.push({ from, to, value })
+  }
+
+  NODE_POOL_EXTRA.forEach((node, i) => {
+    const fromIndex = ids.indexOf(node.id)
+    const outDegree = 1 + (i % 3) // 1 / 2 / 3 を循環
+
+    for (let k = 0; k < outDegree; k++) {
+      const toIndex = (fromIndex + 2 + k * 5) % ids.length
+      const value = VALUE_TIERS[(i * 3 + k * 4) % VALUE_TIERS.length]
+      pushEdge(node.id, ids[toIndex], value)
+    }
+
+    // 一部だけ「その他」系との太い／細い接続を混ぜる
+    if (i % 2 === 0) {
+      pushEdge(
+        'other',
+        node.id,
+        VALUE_TIERS[(i + 7) % VALUE_TIERS.length],
+      )
+    }
+    if (i % 3 === 0) {
+      pushEdge(
+        node.id,
+        'other-unselected',
+        VALUE_TIERS[(i + 2) % VALUE_TIERS.length],
+      )
+    }
+  })
+
+  return edges
+})()
+
+const EDGE_POOL: CytoscapeNetworkEdge[] = [
+  ...EDGE_POOL_BASE,
+  ...EDGE_POOL_EXTRA,
+]
+
+/** しきい値未満（または muted 指定）ならグレー表示対象 */
+export function isGrayEdge(
+  edge: CytoscapeNetworkEdge,
+  edgeMinAbs: number,
+): boolean {
   if (edge.muted === true) return true
   if (edge.muted === false) return false
-  return edge.value < GRAY_EDGE_THRESHOLD
+  return Math.abs(edge.value) < edgeMinAbs
 }
 
 export function buildCytoscapeNetwork(count: number): {

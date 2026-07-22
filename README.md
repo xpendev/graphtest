@@ -22,6 +22,7 @@ npm run dev
 | `/transition-network` | スクラッチ（React + SVG） |
 | `/transition-network/cytoscape` | Cytoscape.js（無料） |
 | `/transition-network/gojs` | GoJS（評価版・有償） |
+| `/transition-network/agcharts` | AG Charts Chord（Enterprise） |
 
 詳細:
 
@@ -29,6 +30,7 @@ npm run dev
 - スクラッチ: [`docs/component-scratch.md`](docs/component-scratch.md)
 - Cytoscape: [`docs/component-cytoscape.md`](docs/component-cytoscape.md)
 - GoJS: [`docs/component-gojs.md`](docs/component-gojs.md)
+- AG Charts: [`docs/component-agcharts.md`](docs/component-agcharts.md)
 
 ## その他のコマンド
 
@@ -42,9 +44,11 @@ npm run dev
 - スクラッチ（6 files）: [`src/transitionNetworkScratch/`](src/transitionNetworkScratch/)
 - Cytoscape（4 files）: [`src/transitionNetworkCytoscape/`](src/transitionNetworkCytoscape/)
 - GoJS（4 files）: [`src/transitionNetworkGoJs/`](src/transitionNetworkGoJs/)
+- AG Charts Chord（4 files）: [`src/transitionNetworkAgCharts/`](src/transitionNetworkAgCharts/)
 
 共通コンポーネントは使わず、実装ごとにフォルダを分離しています。UI は各 `*Page.tsx` に集約し、グラフ見た目は `*Styles.ts`（専用 CSS なし）です。
 
 ## 注意
 
 - GoJS は評価版のためウォーターマークが出ることがあります。本番利用にはライセンスが必要です。
+- AG Charts Chord は Enterprise 機能です。評価利用時はウォーターマークが出ることがあります。

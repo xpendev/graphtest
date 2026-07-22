@@ -57,6 +57,20 @@ export function ScratchGraph({
             />
           </marker>
           <marker
+            id="tn-arrow-muted"
+            viewBox="0 0 10 10"
+            refX="9"
+            refY="5"
+            markerWidth="7"
+            markerHeight="7"
+            orient="auto-start-reverse"
+          >
+            <path
+              d="M 0 1.5 L 9 5 L 0 8.5 Z"
+              fill={scratchStyles.arrowMarkerMutedFill}
+            />
+          </marker>
+          <marker
             id="tn-arrow-ext"
             viewBox="0 0 10 10"
             refX="9"
@@ -68,6 +82,20 @@ export function ScratchGraph({
             <path
               d="M 0 1.5 L 9 5 L 0 8.5 Z"
               fill={scratchStyles.arrowExtMarkerFill}
+            />
+          </marker>
+          <marker
+            id="tn-arrow-ext-muted"
+            viewBox="0 0 10 10"
+            refX="9"
+            refY="5"
+            markerWidth="6"
+            markerHeight="6"
+            orient="auto-start-reverse"
+          >
+            <path
+              d="M 0 1.5 L 9 5 L 0 8.5 Z"
+              fill={scratchStyles.arrowMarkerMutedFill}
             />
           </marker>
           <linearGradient id="tn-node-fill" x1="0" y1="0" x2="0" y2="1">
@@ -102,13 +130,18 @@ export function ScratchGraph({
         {edges.map(({ edge, fromLabel, toLabel, geom }) => {
           const key = `${edge.from}-${edge.to}`
           const active = hoverEdgeKey === key
+          const muted = Math.abs(edge.value) < edgeMinAbs
           const strokeColor = active
-            ? scratchStyles.edgeStrokeHover
-            : scratchStyles.edgeStroke
+            ? muted
+              ? scratchStyles.edgeStrokeMutedHover
+              : scratchStyles.edgeStrokeHover
+            : muted
+              ? scratchStyles.edgeStrokeMuted
+              : scratchStyles.edgeStroke
           const strokeWidth = Math.min(4, 1.2 + Math.abs(edge.value) / 400)
 
           return (
-            <g key={key}>
+            <g key={key} opacity={muted ? 0.55 : 0.95}>
               <line
                 x1={geom.start.x}
                 y1={geom.start.y}
@@ -116,8 +149,7 @@ export function ScratchGraph({
                 y2={geom.end.y}
                 stroke={strokeColor}
                 strokeWidth={active ? strokeWidth + 1 : strokeWidth}
-                markerEnd="url(#tn-arrow)"
-                opacity={0.95}
+                markerEnd={muted ? 'url(#tn-arrow-muted)' : 'url(#tn-arrow)'}
                 pointerEvents="none"
               />
               {/*
@@ -149,7 +181,11 @@ export function ScratchGraph({
               <text
                 x={geom.labelPos.x}
                 y={geom.labelPos.y}
-                fill={scratchStyles.edgeLabelFill}
+                fill={
+                  muted
+                    ? scratchStyles.edgeLabelFillMuted
+                    : scratchStyles.edgeLabelFill
+                }
                 fontSize={11}
                 textAnchor="middle"
                 dominantBaseline="middle"
@@ -162,7 +198,8 @@ export function ScratchGraph({
         })}
 
         {nodes.map((node) => {
-          const showExternal = Math.abs(node.external) >= edgeMinAbs
+          const showExternal = node.external !== 0
+          const mutedExternal = Math.abs(node.external) < edgeMinAbs
           const ext = externalArrow(node.center, node.external)
           const { delta, pct } = formatDelta(node.before, node.after)
           const active = hoverNodeId === node.id
@@ -174,21 +211,33 @@ export function ScratchGraph({
           return (
             <g key={node.id}>
               {showExternal ? (
-                <>
+                <g opacity={mutedExternal ? 0.55 : 1}>
                   <line
                     x1={ext.lineStart.x}
                     y1={ext.lineStart.y}
                     x2={ext.lineEnd.x}
                     y2={ext.lineEnd.y}
-                    stroke={scratchStyles.externalStroke}
+                    stroke={
+                      mutedExternal
+                        ? scratchStyles.externalStrokeMuted
+                        : scratchStyles.externalStroke
+                    }
                     strokeWidth={1.4}
-                    markerEnd="url(#tn-arrow-ext)"
+                    markerEnd={
+                      mutedExternal
+                        ? 'url(#tn-arrow-ext-muted)'
+                        : 'url(#tn-arrow-ext)'
+                    }
                     pointerEvents="none"
                   />
                   <text
                     x={ext.label.x}
                     y={ext.label.y}
-                    fill={scratchStyles.externalLabelFill}
+                    fill={
+                      mutedExternal
+                        ? scratchStyles.externalLabelFillMuted
+                        : scratchStyles.externalLabelFill
+                    }
                     fontSize={11}
                     textAnchor="middle"
                     dominantBaseline="middle"
@@ -196,7 +245,7 @@ export function ScratchGraph({
                   >
                     {formatInt(node.external)}
                   </text>
-                </>
+                </g>
               ) : null}
 
               {/*

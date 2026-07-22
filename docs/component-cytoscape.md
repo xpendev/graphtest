@@ -14,7 +14,7 @@ flowchart TB
   page["CytoscapePage.tsx<br/>ページ UI 一式 + Cytoscape 制御"]
   styles["cytoscapeStyles.ts<br/>ノード／エッジの見た目"]
   data["cytoscapeData.ts<br/>ダミーデータ"]
-  helpers["cytoscapeHelpers.ts<br/>固定座標・ラベル・フィルタ"]
+  helpers["cytoscapeHelpers.ts<br/>楕円配置・ラベル・フィルタ"]
   lib["cytoscape<br/>（外部ライブラリ）"]
 
   main --> page
@@ -35,7 +35,7 @@ sequenceDiagram
 
   Page->>Data: buildCytoscapeNetwork(nodeCount)
   Data-->>Page: nodes / edges
-  Page->>Helpers: filter / nodePositions / labels
+  Page->>Helpers: filter / ellipsePositions / labels
   Helpers-->>Page: 表示用要素
   Page->>Cy: elements + style + preset layout
   Cy-->>Page: キャンバス描画
@@ -49,10 +49,12 @@ sequenceDiagram
 | `CytoscapePage.tsx` | ページ全体（ナビ、4領域 UI、Cytoscape 初期化／更新、ツールチップ、PNG） |
 | `cytoscapeStyles.ts` | ノード／エッジの Cytoscape style 定義 |
 | `cytoscapeData.ts` | ノード／エッジのダミーデータ生成 |
-| `cytoscapeHelpers.ts` | 固定座標・ラベル整形・エッジフィルタ・ツールチップ文言 |
+| `cytoscapeHelpers.ts` | 楕円配置・ラベル整形・エッジフィルタ・ツールチップ文言 |
 
 ## 特徴（提案メモ）
 
 - **無料**のグラフ可視化ライブラリ
 - 見た目は `cytoscape({ style })`（`cytoscapeStyles.ts`）。イベントは Cytoscape 独自 API（jQuery ではない）
+- 圏外矢印は「透明ゴーストノード + エッジ」で表現（エッジは両端ノード必須のため）
+- ノード数は試しで **最大 30**（楕円への可変配置。当初の `ellipsePositions` と同じ計算）
 - 楕円ノード内の細かい複数行レイアウトは、スクラッチほど自由ではない

@@ -1,71 +1,25 @@
 import {
   NODE_COUNT_MAX,
   NODE_COUNT_MIN,
-  type GoJsNetworkEdge,
   type GoJsNetworkNode,
 } from './goJsData'
 
 /** 流入/流出線の表示最小値スライダー初期値 */
 export const EDGE_MIN_DEFAULT = 50
 /** 流入/流出線の表示最小値スライダー上限 */
-export const EDGE_MIN_MAX = 500
+export const EDGE_MIN_MAX = 1000
 
-/**
- * ノード数ごとの中心座標（固定値）。
- * 並びは「上から時計回り」。キャンバスはおおよそ 1200×560、中心付近に楕円状に置いたもの。
- * 見た目を変えたいときは、該当ノード数の配列の x/y を直接編集する。
- */
-const NODE_POSITIONS_BY_COUNT: Record<number, { x: number; y: number }[]> = {
-  2: [
-    { x: 600, y: 85 },
-    { x: 600, y: 475 },
-  ],
-  3: [
-    { x: 600, y: 85 },
-    { x: 972, y: 378 },
-    { x: 228, y: 378 },
-  ],
-  4: [
-    { x: 600, y: 85 },
-    { x: 1030, y: 280 },
-    { x: 600, y: 475 },
-    { x: 170, y: 280 },
-  ],
-  5: [
-    { x: 600, y: 85 },
-    { x: 1009, y: 220 },
-    { x: 853, y: 438 },
-    { x: 347, y: 438 },
-    { x: 191, y: 220 },
-  ],
-  6: [
-    { x: 600, y: 70 },
-    { x: 1040, y: 160 },
-    { x: 1040, y: 400 },
-    { x: 600, y: 490 },
-    { x: 160, y: 400 },
-    { x: 160, y: 160 },
-  ],
-  7: [
-    { x: 600, y: 65 },
-    { x: 980, y: 130 },
-    { x: 1090, y: 300 },
-    { x: 840, y: 485 },
-    { x: 360, y: 485 },
-    { x: 110, y: 340 },
-    { x: 250, y: 115 },
-  ],
-  8: [
-    { x: 600, y: 85 },
-    { x: 904, y: 142 },
-    { x: 1030, y: 280 },
-    { x: 904, y: 418 },
-    { x: 600, y: 475 },
-    { x: 296, y: 418 },
-    { x: 170, y: 280 },
-    { x: 296, y: 142 },
-  ],
-}
+/** 楕円配置の中心 X（Cytoscape と同じ） */
+const CX = 600
+/** 楕円配置の中心 Y */
+const CY = 280
+/** 楕円の横半径 */
+const RADIUS_X = 430
+/** 楕円の縦半径 */
+const RADIUS_Y = 195
+/** ノード楕円サイズ（goJsStyles と揃える） */
+const NODE_W = 168
+const NODE_H = 64
 
 /** 数値を日本ロケールのカンマ区切りにする */
 export function formatInt(n: number): string {
@@ -88,13 +42,94 @@ export function formatDelta(
   }
 }
 
-/** 指定ノード数の配置座標一覧を返す（固定表を参照） */
+/**
+ * ノードを楕円状に等間隔配置した座標一覧を返す（可変計算）。
+ * Cytoscape の ellipsePositions と同じ式。
+ */
+export function ellipsePositions(count: number): { x: number; y: number }[] {
+  return Array.from({ length: count }, (_, i) => {
+    const angle = -Math.PI / 2 + (i * 2 * Math.PI) / count
+    return {
+      x: CX + RADIUS_X * Math.cos(angle),
+      y: CY + RADIUS_Y * Math.sin(angle),
+    }
+  })
+}
+
+/** @deprecated ellipsePositions と同じ */
 export function nodePositions(count: number): { x: number; y: number }[] {
-  const positions = NODE_POSITIONS_BY_COUNT[count]
-  if (!positions) {
-    throw new Error(`未対応のノード数です: ${count}（対応は 2〜8）`)
-  }
-  return positions
+  return ellipsePositions(count)
+}
+
+/**
+ * 圏外矢印用のゴーストノード／リンク（Cytoscape と同じ考え方）。
+ * GoJS の Link も両端ノードが必要なため、透明ノードで代用する。
+ */
+export function buildExternalModels(
+  nodes: GoJsNetworkNode[],
+  positions: { x: number; y: number }[],
+  edgeMinAbs: number,
+): {
+  ghosts: { key: string; category: string; loc: string }[]
+  links: {
+    key: string
+    category: string
+    from: string
+    to: string
+    label: string
+    value: number
+    fromLabel: string
+    toLabel: string
+    kind: string
+    muted: boolean
+  }[]
+} {
+  const ghosts: { key: string; category: string; loc: string }[] = []
+  const links: {
+    key: string
+    category: string
+    from: string
+    to: string
+    label: string
+    value: number
+    fromLabel: string
+    toLabel: string
+    kind: string
+    muted: boolean
+  }[] = []
+
+  nodes.forEach((node, index) => {
+    if (node.external === 0) return
+
+    const center = positions[index]
+    const ang = Math.atan2(center.y - CY, center.x - CX)
+    const tip = {
+      x: center.x + Math.cos(ang) * (NODE_W / 2 + 36),
+      y: center.y + Math.sin(ang) * (NODE_H / 2 + 28),
+    }
+    const ghostId = `ext-ghost-${node.id}`
+    const inflow = node.external > 0
+
+    ghosts.push({
+      key: ghostId,
+      category: 'ghost',
+      loc: `${tip.x} ${tip.y}`,
+    })
+    links.push({
+      key: `ext-${node.id}`,
+      category: 'external',
+      from: inflow ? ghostId : node.id,
+      to: inflow ? node.id : ghostId,
+      label: formatInt(node.external),
+      value: node.external,
+      fromLabel: inflow ? '圏外' : node.label,
+      toLabel: inflow ? node.label : '圏外',
+      kind: 'external',
+      muted: Math.abs(node.external) < edgeMinAbs,
+    })
+  })
+
+  return { ghosts, links }
 }
 
 /** ノード内に表示する複数行ラベルを組み立てる */
@@ -110,14 +145,6 @@ export function nodeLabelLines(node: GoJsNetworkNode): string {
     `${delta} ${pct}`,
     ext,
   ].join('\n')
-}
-
-/** しきい値未満の遷移エッジを除外する */
-export function filterGoJsEdges(
-  edges: GoJsNetworkEdge[],
-  edgeMinAbs: number,
-): GoJsNetworkEdge[] {
-  return edges.filter((edge) => Math.abs(edge.value) >= edgeMinAbs)
 }
 
 /** ノードホバー用ツールチップの文言を返す */

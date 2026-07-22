@@ -14,7 +14,7 @@ flowchart TB
   page["GoJsPage.tsx<br/>ページ UI 一式 + Diagram 制御"]
   styles["goJsStyles.ts<br/>ノード／リンクの見た目"]
   data["goJsData.ts<br/>ダミーデータ"]
-  helpers["goJsHelpers.ts<br/>固定座標・ラベル・フィルタ"]
+  helpers["goJsHelpers.ts<br/>楕円配置・ラベル・フィルタ"]
   lib["gojs<br/>（外部ライブラリ・評価／有償）"]
 
   main --> page
@@ -35,7 +35,7 @@ sequenceDiagram
 
   Page->>Data: buildGoJsNetwork(nodeCount)
   Data-->>Page: nodes / edges
-  Page->>Helpers: filter / nodePositions / labels
+  Page->>Helpers: filter / ellipsePositions / labels
   Helpers-->>Page: model 用配列
   Page->>Go: GraphLinksModel + テンプレート
   Go-->>Page: ダイアグラム描画
@@ -49,10 +49,12 @@ sequenceDiagram
 | `GoJsPage.tsx` | ページ全体（ナビ、4領域 UI、Diagram 初期化／更新、ツールチップ、PNG） |
 | `goJsStyles.ts` | ノード／リンク色・テンプレート定義 |
 | `goJsData.ts` | ノード／エッジのダミーデータ生成 |
-| `goJsHelpers.ts` | 固定座標・ラベル整形・エッジフィルタ・ツールチップ文言 |
+| `goJsHelpers.ts` | 楕円配置・ラベル整形・エッジフィルタ・圏外矢印・ツールチップ文言 |
 
 ## 特徴（提案メモ）
 
 - **商用ダイアグラムライブラリ**（評価利用可、本番はライセンス必須）
-- 見た目はテンプレート＋データバインド（`goJsStyles.ts`）。ホバーは GoJS の `GraphObject.mouseEnter` / `mouseLeave`
+- ノード／リンクをテンプレート＋データバインドで定義。ホバーは GoJS の `GraphObject.mouseEnter` / `mouseLeave`
+- ノード数は試しで **最大 30**（楕円への可変配置）
+- 圏外矢印は透明ゴーストノード＋リンクで表現（Cytoscape と同じ考え方）
 - 評価版ではウォーターマークが出ることがある

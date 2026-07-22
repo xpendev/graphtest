@@ -15,7 +15,7 @@ flowchart TB
   graph["ScratchGraph.tsx<br/>中央 SVG グラフ"]
   styles["scratchStyles.ts<br/>SVG の色定数"]
   data["scratchData.ts<br/>ダミーデータ"]
-  helpers["scratchHelpers.ts<br/>固定座標・エッジ幾何"]
+  helpers["scratchHelpers.ts<br/>楕円配置・エッジ幾何"]
   png["scratchPng.ts<br/>SVG → PNG"]
 
   main --> page
@@ -52,7 +52,7 @@ sequenceDiagram
 | `ScratchGraph.tsx` | 中央の有向ネットワーク（楕円ノード・遷移線・圏外矢印・ツールチップ） |
 | `scratchStyles.ts` | SVG の色・グラデーション定数 |
 | `scratchData.ts` | ノード／エッジのダミーデータ生成 |
-| `scratchHelpers.ts` | 固定座標・線の幾何・数値フォーマット |
+| `scratchHelpers.ts` | 楕円配置・線の幾何・数値フォーマット |
 | `scratchPng.ts` | SVG を PNG 化してコピー／保存 |
 
 ## 特徴（提案メモ）
@@ -60,4 +60,5 @@ sequenceDiagram
 - **ライブラリなし**（React + SVG のみ）
 - 見た目の再現度が最も高い（現行画面の基準実装）
 - グラフ本体のみ `ScratchGraph` として分離。PNG は自前（`scratchPng.ts`）
+- ノード数は試しで **最大 30**（楕円への可変配置）
 - ホバーは React の SVG マウスイベント（ライブラリ API ではない）
