@@ -67,7 +67,7 @@ const NODE_POOL_BASE: ScratchNode[] = [
   {
     id: 'cat-b',
     label: 'カテゴリB',
-    before: 734,
+    before: 0,
     after: 523,
     external: -187,
   },
