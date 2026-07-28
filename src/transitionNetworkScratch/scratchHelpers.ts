@@ -77,7 +77,16 @@ export function formatDelta(
  */
 function nodeCenters(count: number): Point[] {
   return Array.from({ length: count }, (_, i) => {
-    const angle = -Math.PI / 2 + (i * 2 * Math.PI) / count
+    /** 1周ぶんの角度（2π = 360度） */
+    const FULL_TURN = 2 * Math.PI
+    /** 12時方向から始めるための開始オフセット */
+    const START_AT_TOP = -Math.PI / 2
+    /** ノード1個ぶん進む角度 */
+    const stepAngle = FULL_TURN / count
+    /** i個目までに進む角度 */
+    const angleFromStart = i * stepAngle
+    /** 最終的な角度（12時開始 + i個目の進み） */
+    const angle = START_AT_TOP + angleFromStart
     return {
       x: CX + RADIUS_X * Math.cos(angle),
       y: CY + RADIUS_Y * Math.sin(angle),
