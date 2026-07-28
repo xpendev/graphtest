@@ -23,6 +23,43 @@ type ScratchGraphProps = {
   onHoverNode: (id: string | null, tooltip: TooltipState | null) => void
 }
 
+/** 矢じり path（右向き三角）。marker 内の viewBox 0..10 上で描く */
+const ARROW_PATH_D = 'M 0 1.5 L 9 5 L 0 8.5 Z'
+
+/** 遷移線の太さ: 件数に応じて増やし、上限 4 で頭打ち */
+function edgeStrokeWidth(value: number): number {
+  const rawWidth = 1.2 + Math.abs(value) / 400
+  return Math.min(4, rawWidth)
+}
+
+type ArrowMarkerProps = {
+  id: string
+  fill: string
+  /** 通常矢印 7 / 圏外矢印 6 */
+  size: number
+}
+
+/** defs 内の矢じり部品（同じ形・色とサイズだけ違う） */
+function ArrowMarker({ id, fill, size }: ArrowMarkerProps) {
+  return (
+    <marker
+      id={id}
+      viewBox="0 0 10 10"
+      refX="9"
+      refY="5"
+      markerWidth={size}
+      markerHeight={size}
+      orient="auto-start-reverse"
+    >
+      <path d={ARROW_PATH_D} fill={fill} />
+    </marker>
+  )
+}
+
+/**
+ * 中央の遷移ネットワーク SVG。
+ * 座標は props の nodes/edges（Helpers の戻り値）をそのまま使う。
+ */
 export function ScratchGraph({
   nodes,
   edges,
@@ -42,71 +79,30 @@ export function ScratchGraph({
         aria-label="カテゴリ間遷移ネットワーク"
       >
         <defs>
-          <marker
+          {/* 矢じり部品置き場。line の markerEnd から id で参照する */}
+          <ArrowMarker
             id="tn-arrow"
-            viewBox="0 0 10 10"
-            refX="9"
-            refY="5"
-            markerWidth="7"
-            markerHeight="7"
-            orient="auto-start-reverse"
-          >
-            <path
-              d="M 0 1.5 L 9 5 L 0 8.5 Z"
-              fill={scratchStyles.arrowMarkerFill}
-            />
-          </marker>
-          <marker
+            fill={scratchStyles.arrowMarkerFill}
+            size={7}
+          />
+          <ArrowMarker
             id="tn-arrow-muted"
-            viewBox="0 0 10 10"
-            refX="9"
-            refY="5"
-            markerWidth="7"
-            markerHeight="7"
-            orient="auto-start-reverse"
-          >
-            <path
-              d="M 0 1.5 L 9 5 L 0 8.5 Z"
-              fill={scratchStyles.arrowMarkerMutedFill}
-            />
-          </marker>
-          <marker
+            fill={scratchStyles.arrowMarkerMutedFill}
+            size={7}
+          />
+          <ArrowMarker
             id="tn-arrow-ext"
-            viewBox="0 0 10 10"
-            refX="9"
-            refY="5"
-            markerWidth="6"
-            markerHeight="6"
-            orient="auto-start-reverse"
-          >
-            <path
-              d="M 0 1.5 L 9 5 L 0 8.5 Z"
-              fill={scratchStyles.arrowExtMarkerFill}
-            />
-          </marker>
-          <marker
+            fill={scratchStyles.arrowExtMarkerFill}
+            size={6}
+          />
+          <ArrowMarker
             id="tn-arrow-ext-muted"
-            viewBox="0 0 10 10"
-            refX="9"
-            refY="5"
-            markerWidth="6"
-            markerHeight="6"
-            orient="auto-start-reverse"
-          >
-            <path
-              d="M 0 1.5 L 9 5 L 0 8.5 Z"
-              fill={scratchStyles.arrowMarkerMutedFill}
-            />
-          </marker>
+            fill={scratchStyles.arrowMarkerMutedFill}
+            size={6}
+          />
           <linearGradient id="tn-node-fill" x1="0" y1="0" x2="0" y2="1">
-            <stop
-              offset="0%"
-              stopColor={scratchStyles.nodeGradient.start}
-            />
-            <stop
-              offset="100%"
-              stopColor={scratchStyles.nodeGradient.end}
-            />
+            <stop offset="0%" stopColor={scratchStyles.nodeGradient.start} />
+            <stop offset="100%" stopColor={scratchStyles.nodeGradient.end} />
           </linearGradient>
           <linearGradient id="tn-node-fill-hover" x1="0" y1="0" x2="0" y2="1">
             <stop
@@ -127,35 +123,44 @@ export function ScratchGraph({
           rx="8"
         />
 
+        {/* --- 遷移矢印 --- */}
         {edges.map(({ edge, fromLabel, toLabel, geom }) => {
-          const key = `${edge.from}-${edge.to}`
-          const active = hoverEdgeKey === key
-          const muted = Math.abs(edge.value) < edgeMinAbs
-          const strokeColor = active
-            ? muted
+          const edgeKey = `${edge.from}-${edge.to}`
+          const isHovered = hoverEdgeKey === edgeKey
+          const isMuted = Math.abs(edge.value) < edgeMinAbs
+          const baseWidth = edgeStrokeWidth(edge.value)
+          const strokeWidth = isHovered ? baseWidth + 1 : baseWidth
+
+          const strokeColor = isHovered
+            ? isMuted
               ? scratchStyles.edgeStrokeMutedHover
               : scratchStyles.edgeStrokeHover
-            : muted
+            : isMuted
               ? scratchStyles.edgeStrokeMuted
               : scratchStyles.edgeStroke
-          const strokeWidth = Math.min(4, 1.2 + Math.abs(edge.value) / 400)
+
+          const markerEnd = isMuted
+            ? 'url(#tn-arrow-muted)'
+            : 'url(#tn-arrow)'
+          const labelFill = isMuted
+            ? scratchStyles.edgeLabelFillMuted
+            : scratchStyles.edgeLabelFill
 
           return (
-            <g key={key} opacity={muted ? 0.55 : 0.95}>
+            <g key={edgeKey} opacity={isMuted ? 0.55 : 0.95}>
               <line
                 x1={geom.start.x}
                 y1={geom.start.y}
                 x2={geom.end.x}
                 y2={geom.end.y}
                 stroke={strokeColor}
-                strokeWidth={active ? strokeWidth + 1 : strokeWidth}
-                markerEnd={muted ? 'url(#tn-arrow-muted)' : 'url(#tn-arrow)'}
+                strokeWidth={strokeWidth}
+                markerEnd={markerEnd}
                 pointerEvents="none"
               />
               {/*
-                ホバー用ヒット領域。
-                React の onMouseEnter / onMouseLeave（SVG 要素上のマウスイベント）。
-                jQuery ではない。
+                ホバー用の太い透明線（実線は細いので当たりを広げる）。
+                React の onMouseEnter / Leave。jQuery ではない。
               */}
               <line
                 x1={geom.start.x}
@@ -166,7 +171,7 @@ export function ScratchGraph({
                 strokeWidth={14}
                 style={{ cursor: 'pointer' }}
                 onMouseEnter={() => {
-                  onHoverEdge(key, {
+                  onHoverEdge(edgeKey, {
                     x: geom.mid.x,
                     y: geom.mid.y,
                     title: '遷移',
@@ -181,11 +186,7 @@ export function ScratchGraph({
               <text
                 x={geom.labelPos.x}
                 y={geom.labelPos.y}
-                fill={
-                  muted
-                    ? scratchStyles.edgeLabelFillMuted
-                    : scratchStyles.edgeLabelFill
-                }
+                fill={labelFill}
                 fontSize={11}
                 textAnchor="middle"
                 dominantBaseline="middle"
@@ -197,44 +198,45 @@ export function ScratchGraph({
           )
         })}
 
+        {/* --- ノード（楕円）＋圏外矢印 --- */}
         {nodes.map((node) => {
-          const showExternal = node.external !== 0
-          const mutedExternal = Math.abs(node.external) < edgeMinAbs
-          const ext = externalArrow(node.center, node.external)
+          const hasExternal = node.external !== 0
+          const isExternalMuted = Math.abs(node.external) < edgeMinAbs
+          const externalGeom = externalArrow(node.center, node.external)
           const { delta, pct } = formatDelta(node.before, node.after)
-          const active = hoverNodeId === node.id
-          const extLabel =
+          const isHovered = hoverNodeId === node.id
+          const externalTooltipLine =
             node.external >= 0
               ? `圏外からの流入: ${formatInt(node.external)}`
               : `圏外への流出: ${formatInt(Math.abs(node.external))}`
 
           return (
             <g key={node.id}>
-              {showExternal ? (
-                <g opacity={mutedExternal ? 0.55 : 1}>
+              {hasExternal ? (
+                <g opacity={isExternalMuted ? 0.55 : 1}>
                   <line
-                    x1={ext.lineStart.x}
-                    y1={ext.lineStart.y}
-                    x2={ext.lineEnd.x}
-                    y2={ext.lineEnd.y}
+                    x1={externalGeom.lineStart.x}
+                    y1={externalGeom.lineStart.y}
+                    x2={externalGeom.lineEnd.x}
+                    y2={externalGeom.lineEnd.y}
                     stroke={
-                      mutedExternal
+                      isExternalMuted
                         ? scratchStyles.externalStrokeMuted
                         : scratchStyles.externalStroke
                     }
                     strokeWidth={1.4}
                     markerEnd={
-                      mutedExternal
+                      isExternalMuted
                         ? 'url(#tn-arrow-ext-muted)'
                         : 'url(#tn-arrow-ext)'
                     }
                     pointerEvents="none"
                   />
                   <text
-                    x={ext.label.x}
-                    y={ext.label.y}
+                    x={externalGeom.label.x}
+                    y={externalGeom.label.y}
                     fill={
-                      mutedExternal
+                      isExternalMuted
                         ? scratchStyles.externalLabelFillMuted
                         : scratchStyles.externalLabelFill
                     }
@@ -248,25 +250,20 @@ export function ScratchGraph({
                 </g>
               ) : null}
 
-              {/*
-                ノードホバー。
-                React の onMouseEnter / onMouseLeave（SVG 要素上のマウスイベント）。
-                jQuery ではない。
-              */}
               <ellipse
                 cx={node.center.x}
                 cy={node.center.y}
                 rx={NODE_W / 2}
                 ry={NODE_H / 2}
                 fill={
-                  active ? 'url(#tn-node-fill-hover)' : 'url(#tn-node-fill)'
+                  isHovered ? 'url(#tn-node-fill-hover)' : 'url(#tn-node-fill)'
                 }
                 stroke={
-                  active
+                  isHovered
                     ? scratchStyles.nodeStrokeHover
                     : scratchStyles.nodeStroke
                 }
-                strokeWidth={active ? 2 : 1}
+                strokeWidth={isHovered ? 2 : 1}
                 style={{ cursor: 'pointer' }}
                 onMouseEnter={() => {
                   onHoverNode(node.id, {
@@ -277,7 +274,7 @@ export function ScratchGraph({
                       `前期: ${formatInt(node.before)}`,
                       `今期: ${formatInt(node.after)}`,
                       `差分: ${delta}（${pct}）`,
-                      extLabel,
+                      externalTooltipLine,
                     ],
                   })
                 }}

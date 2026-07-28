@@ -1,6 +1,10 @@
 import { useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { buildScratchNetwork, NODE_COUNT_MAX, NODE_COUNT_MIN } from './scratchData'
+import {
+  buildScratchNetwork,
+  NODE_COUNT_MAX,
+  NODE_COUNT_MIN,
+} from './scratchData'
 import {
   EDGE_MIN_DEFAULT,
   EDGE_MIN_MAX,
@@ -14,20 +18,37 @@ import {
   downloadScratchSvgAsPng,
 } from './scratchPng'
 
+/** 入力値が 2〜30 の整数かどうか */
+function isValidNodeCount(value: number): boolean {
+  return (
+    Number.isInteger(value) &&
+    value >= NODE_COUNT_MIN &&
+    value <= NODE_COUNT_MAX
+  )
+}
+
+/**
+ * スクラッチ版ページ。
+ * state を持ち、Data → Helpers → Graph をつなぐ司令塔。
+ */
 export function ScratchPage() {
   const rootRef = useRef<HTMLDivElement>(null)
   const [message, setMessage] = useState<string | null>(null)
   const [isCopying, setIsCopying] = useState(false)
   const [isDownloading, setIsDownloading] = useState(false)
-  /** テキストボックスの入力値（未確定） */
+
+  /** テキストボックスの入力（まだ確定していない値） */
   const [draftNodeCount, setDraftNodeCount] = useState(String(NODE_COUNT_MIN))
-  /** 表示ボタン確定後のノード数 */
+  /** 「表示」押下後にグラフへ渡すノード数 */
   const [nodeCount, setNodeCount] = useState<number | null>(NODE_COUNT_MIN)
+  /** 流入/流出線をグレーにするしきい値（絶対値） */
   const [edgeMinAbs, setEdgeMinAbs] = useState(EDGE_MIN_DEFAULT)
+
   const [tooltip, setTooltip] = useState<TooltipState | null>(null)
   const [hoverEdgeKey, setHoverEdgeKey] = useState<string | null>(null)
   const [hoverNodeId, setHoverNodeId] = useState<string | null>(null)
 
+  // --- Data → Helpers（座標付き） ---
   const network = useMemo(
     () => (nodeCount == null ? null : buildScratchNetwork(nodeCount)),
     [nodeCount],
@@ -41,18 +62,19 @@ export function ScratchPage() {
     [network, nodes],
   )
 
-  const showGraph = () => {
-    setMessage(null)
+  const clearHover = () => {
     setTooltip(null)
     setHoverEdgeKey(null)
     setHoverNodeId(null)
+  }
+
+  /** 入力値を検証し、問題なければグラフ用ノード数を確定する */
+  const showGraph = () => {
+    setMessage(null)
+    clearHover()
 
     const parsed = Number(draftNodeCount.trim())
-    if (
-      !Number.isInteger(parsed) ||
-      parsed < NODE_COUNT_MIN ||
-      parsed > NODE_COUNT_MAX
-    ) {
+    if (!isValidNodeCount(parsed)) {
       setMessage(
         `ノード数は ${NODE_COUNT_MIN} 〜 ${NODE_COUNT_MAX} の整数を入力してください。`,
       )
@@ -68,6 +90,44 @@ export function ScratchPage() {
     }
     return svg
   }
+
+  const handleCopyPng = async () => {
+    setIsCopying(true)
+    setMessage(null)
+    try {
+      await copyScratchSvgToClipboard(getSvg())
+      setMessage('PNGをコピーしました。Ctrl+V で貼り付けできます。')
+    } catch (error) {
+      setMessage(
+        error instanceof Error ? error.message : 'PNGコピーに失敗しました。',
+      )
+    } finally {
+      setIsCopying(false)
+    }
+  }
+
+  const handleDownloadPng = async () => {
+    setIsDownloading(true)
+    setMessage(null)
+    try {
+      await downloadScratchSvgAsPng(getSvg(), 'transition-network')
+      setMessage('PNGをダウンロードしました。')
+    } catch (error) {
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : 'PNGダウンロードに失敗しました。',
+      )
+    } finally {
+      setIsDownloading(false)
+    }
+  }
+
+  const isErrorMessage =
+    !!message &&
+    (message.includes('失敗') ||
+      message.includes('見つかりません') ||
+      message.includes('入力してください'))
 
   return (
     <main className="tn-page">
@@ -94,21 +154,8 @@ export function ScratchPage() {
             type="button"
             className="tn-page-btn"
             disabled={isCopying}
-            onClick={async () => {
-              setIsCopying(true)
-              setMessage(null)
-              try {
-                await copyScratchSvgToClipboard(getSvg())
-                setMessage('PNGをコピーしました。Ctrl+V で貼り付けできます。')
-              } catch (error) {
-                setMessage(
-                  error instanceof Error
-                    ? error.message
-                    : 'PNGコピーに失敗しました。',
-                )
-              } finally {
-                setIsCopying(false)
-              }
+            onClick={() => {
+              void handleCopyPng()
             }}
           >
             {isCopying ? 'コピー中…' : 'PNGをコピー'}
@@ -117,21 +164,8 @@ export function ScratchPage() {
             type="button"
             className="tn-page-btn"
             disabled={isDownloading}
-            onClick={async () => {
-              setIsDownloading(true)
-              setMessage(null)
-              try {
-                await downloadScratchSvgAsPng(getSvg(), 'transition-network')
-                setMessage('PNGをダウンロードしました。')
-              } catch (error) {
-                setMessage(
-                  error instanceof Error
-                    ? error.message
-                    : 'PNGダウンロードに失敗しました。',
-                )
-              } finally {
-                setIsDownloading(false)
-              }
+            onClick={() => {
+              void handleDownloadPng()
             }}
           >
             {isDownloading ? 'ダウンロード中…' : 'PNGをダウンロード'}
@@ -141,13 +175,7 @@ export function ScratchPage() {
 
       {message ? (
         <p
-          className={
-            message.includes('失敗') ||
-            message.includes('見つかりません') ||
-            message.includes('入力してください')
-              ? 'tn-page-message error'
-              : 'tn-page-message'
-          }
+          className={isErrorMessage ? 'tn-page-message error' : 'tn-page-message'}
           role="status"
         >
           {message}
@@ -191,8 +219,7 @@ export function ScratchPage() {
                 step={1}
                 value={edgeMinAbs}
                 onChange={(e) => {
-                  setTooltip(null)
-                  setHoverEdgeKey(null)
+                  clearHover()
                   setEdgeMinAbs(Number(e.target.value))
                 }}
               />
@@ -242,11 +269,7 @@ export function ScratchPage() {
                   if (e.key === 'Enter') showGraph()
                 }}
               />
-              <button
-                type="button"
-                className="tn-page-btn"
-                onClick={showGraph}
-              >
+              <button type="button" className="tn-page-btn" onClick={showGraph}>
                 表示
               </button>
             </div>

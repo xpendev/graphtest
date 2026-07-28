@@ -1,3 +1,13 @@
+/**
+ * SVG → PNG 変換と、コピー／ダウンロード。
+ *
+ * 流れ:
+ * 1. SVG DOM を文字列化して画像として読む
+ * 2. Canvas に描く
+ * 3. PNG Blob を得る
+ * 4. クリップボードへ書く、またはファイル保存する
+ */
+
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image()
@@ -19,6 +29,7 @@ function buildPngFilename(prefix: string): string {
   return `${prefix}-${stamp}.png`
 }
 
+/** Blob を一時 URL にして <a download> で保存する */
 function downloadBlob(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
@@ -36,10 +47,10 @@ async function copyPngToClipboard(blob: Blob): Promise<void> {
       'このブラウザではクリップボードへの画像コピーに対応していません。',
     )
   }
-
   await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
 }
 
+/** SVG を Canvas 上の指定位置に描画する */
 async function drawSvgOnCanvas(
   ctx: CanvasRenderingContext2D,
   svg: SVGSVGElement,
@@ -48,6 +59,7 @@ async function drawSvgOnCanvas(
   const svgRect = svg.getBoundingClientRect()
   if (svgRect.width === 0 || svgRect.height === 0) return
 
+  // 表示サイズを属性に載せてからシリアライズする
   const clone = svg.cloneNode(true) as SVGSVGElement
   if (!clone.getAttribute('width')) {
     clone.setAttribute('width', String(svgRect.width))
@@ -60,43 +72,48 @@ async function drawSvgOnCanvas(
   const svgBlob = new Blob([svgString], {
     type: 'image/svg+xml;charset=utf-8',
   })
-  const url = URL.createObjectURL(svgBlob)
+  const objectUrl = URL.createObjectURL(svgBlob)
 
   try {
-    const img = await loadImage(url)
+    const image = await loadImage(objectUrl)
     ctx.drawImage(
-      img,
+      image,
       svgRect.left - containerRect.left,
       svgRect.top - containerRect.top,
       svgRect.width,
       svgRect.height,
     )
   } finally {
-    URL.revokeObjectURL(url)
+    URL.revokeObjectURL(objectUrl)
   }
 }
 
+/** 表示中 SVG を PNG Blob にする（高 DPI 向けに devicePixelRatio を反映） */
 async function renderSvgToPngBlob(svg: SVGSVGElement): Promise<Blob> {
   const rect = svg.getBoundingClientRect()
   if (rect.width === 0 || rect.height === 0) {
     throw new Error('コピー対象のグラフが表示されていません。')
   }
 
-  const dpr = window.devicePixelRatio || 1
+  const devicePixelRatio = window.devicePixelRatio || 1
   const canvas = document.createElement('canvas')
-  canvas.width = Math.round(rect.width * dpr)
-  canvas.height = Math.round(rect.height * dpr)
+  canvas.width = Math.round(rect.width * devicePixelRatio)
+  canvas.height = Math.round(rect.height * devicePixelRatio)
 
   const ctx = canvas.getContext('2d')
   if (!ctx) {
     throw new Error('Canvas が利用できません。')
   }
 
-  ctx.scale(dpr, dpr)
+  ctx.scale(devicePixelRatio, devicePixelRatio)
 
-  const bg = getComputedStyle(svg).backgroundColor
-  if (bg && bg !== 'transparent' && bg !== 'rgba(0, 0, 0, 0)') {
-    ctx.fillStyle = bg
+  const backgroundColor = getComputedStyle(svg).backgroundColor
+  const hasBackground =
+    backgroundColor &&
+    backgroundColor !== 'transparent' &&
+    backgroundColor !== 'rgba(0, 0, 0, 0)'
+  if (hasBackground) {
+    ctx.fillStyle = backgroundColor
     ctx.fillRect(0, 0, rect.width, rect.height)
   }
 
@@ -105,9 +122,7 @@ async function renderSvgToPngBlob(svg: SVGSVGElement): Promise<Blob> {
   return new Promise((resolve, reject) => {
     canvas.toBlob(
       (blob) =>
-        blob
-          ? resolve(blob)
-          : reject(new Error('画像の生成に失敗しました。')),
+        blob ? resolve(blob) : reject(new Error('画像の生成に失敗しました。')),
       'image/png',
     )
   })
@@ -116,14 +131,14 @@ async function renderSvgToPngBlob(svg: SVGSVGElement): Promise<Blob> {
 export async function copyScratchSvgToClipboard(
   svg: SVGSVGElement,
 ): Promise<void> {
-  const blob = await renderSvgToPngBlob(svg)
-  await copyPngToClipboard(blob)
+  const pngBlob = await renderSvgToPngBlob(svg)
+  await copyPngToClipboard(pngBlob)
 }
 
 export async function downloadScratchSvgAsPng(
   svg: SVGSVGElement,
   filenamePrefix = 'chart',
 ): Promise<void> {
-  const blob = await renderSvgToPngBlob(svg)
-  downloadBlob(blob, buildPngFilename(filenamePrefix))
+  const pngBlob = await renderSvgToPngBlob(svg)
+  downloadBlob(pngBlob, buildPngFilename(filenamePrefix))
 }

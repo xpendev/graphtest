@@ -13,9 +13,9 @@ export type ScratchNode = {
   id: string
   /** 楕円内に表示するカテゴリ名 */
   label: string
-  /** 前期の金額・件数 */
+  /** 前期の購入量（画面座標や相対値ではない） */
   before: number
-  /** 当期の金額・件数 */
+  /** 当期の購入量（画面座標や相対値ではない） */
   after: number
   /** 圏外との純増減（正=流入、負=流出） */
   external: number
@@ -36,9 +36,9 @@ export type ScratchEdge = {
   muted?: boolean
 }
 
-/** ノード数スライダーの下限 */
+/** ノード数入力の下限 */
 export const NODE_COUNT_MIN = 2
-/** 試し表示用の上限（Cytoscape / GoJS と同じ） */
+/** ノード数入力の上限（試し表示用。Cytoscape / GoJS と同じ） */
 export const NODE_COUNT_MAX = 30
 
 /** 元画面を再現する固定8カテゴリ（9件目以降は NODE_POOL_EXTRA） */
@@ -107,12 +107,17 @@ const NODE_POOL_EXTRA: ScratchNode[] = Array.from(
   (_, i) => {
     /** 表示用の連番（カテゴリ9 始まり） */
     const n = i + 9
+    // 以下はダミー生成（本番では API の値をそのまま使う）
+    const dummyBefore = 100 + n * 17
+    const dummyAfter = 90 + n * 19
+    const dummyExternalSign = n % 3 === 0 ? 1 : -1
+    const dummyExternal = dummyExternalSign * (10 + n * 3)
     return {
       id: `cat-${n}`,
       label: `カテゴリ${n}`,
-      before: 100 + n * 17,
-      after: 90 + n * 19,
-      external: (n % 3 === 0 ? 1 : -1) * (10 + n * 3),
+      before: dummyBefore,
+      after: dummyAfter,
+      external: dummyExternal,
     }
   },
 )
