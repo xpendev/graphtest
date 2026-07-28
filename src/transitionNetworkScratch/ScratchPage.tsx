@@ -20,9 +20,9 @@ export function ScratchPage() {
   const [isCopying, setIsCopying] = useState(false)
   const [isDownloading, setIsDownloading] = useState(false)
   /** テキストボックスの入力値（未確定） */
-  const [draftNodeCount, setDraftNodeCount] = useState(String(NODE_COUNT_MAX))
-  /** 表示ボタン確定後のノード数。null の間はグラフ非表示 */
-  const [nodeCount, setNodeCount] = useState<number | null>(null)
+  const [draftNodeCount, setDraftNodeCount] = useState(String(NODE_COUNT_MIN))
+  /** 表示ボタン確定後のノード数 */
+  const [nodeCount, setNodeCount] = useState<number | null>(NODE_COUNT_MIN)
   const [edgeMinAbs, setEdgeMinAbs] = useState(EDGE_MIN_DEFAULT)
   const [tooltip, setTooltip] = useState<TooltipState | null>(null)
   const [hoverEdgeKey, setHoverEdgeKey] = useState<string | null>(null)
