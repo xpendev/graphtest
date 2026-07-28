@@ -326,7 +326,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
 }
 
 .tn-bottom-control-label {
@@ -336,6 +336,36 @@ body {
 
 .tn-slider-bottom {
   width: min(520px, 80%);
+}
+
+.tn-node-count-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tn-node-count-input {
+  width: 88px;
+  padding: 6px 10px;
+  border: 1px solid #4a6a80;
+  border-radius: 4px;
+  background: #12171c;
+  color: #e8eef3;
+  font-size: 14px;
+}
+
+.tn-graph-placeholder {
+  flex: 1;
+  min-height: 280px;
+  display: grid;
+  place-items: center;
+  margin: 12px 24px;
+  border: 1px dashed #4a6a80;
+  border-radius: 8px;
+  color: #9aa8b5;
+  font-size: 14px;
+  text-align: center;
+  padding: 16px;
 }
 
 .tn-tooltip {

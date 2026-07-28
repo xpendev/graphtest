@@ -19,21 +19,47 @@ export function ScratchPage() {
   const [message, setMessage] = useState<string | null>(null)
   const [isCopying, setIsCopying] = useState(false)
   const [isDownloading, setIsDownloading] = useState(false)
-  const [nodeCount, setNodeCount] = useState(30)
+  /** テキストボックスの入力値（未確定） */
+  const [draftNodeCount, setDraftNodeCount] = useState(String(NODE_COUNT_MAX))
+  /** 表示ボタン確定後のノード数。null の間はグラフ非表示 */
+  const [nodeCount, setNodeCount] = useState<number | null>(null)
   const [edgeMinAbs, setEdgeMinAbs] = useState(EDGE_MIN_DEFAULT)
   const [tooltip, setTooltip] = useState<TooltipState | null>(null)
   const [hoverEdgeKey, setHoverEdgeKey] = useState<string | null>(null)
   const [hoverNodeId, setHoverNodeId] = useState<string | null>(null)
 
   const network = useMemo(
-    () => buildScratchNetwork(nodeCount),
+    () => (nodeCount == null ? null : buildScratchNetwork(nodeCount)),
     [nodeCount],
   )
-  const nodes = useMemo(() => layoutNodes(network.nodes), [network.nodes])
-  const edges = useMemo(
-    () => layoutEdges(network.edges, nodes),
-    [network.edges, nodes],
+  const nodes = useMemo(
+    () => (network ? layoutNodes(network.nodes) : []),
+    [network],
   )
+  const edges = useMemo(
+    () => (network ? layoutEdges(network.edges, nodes) : []),
+    [network, nodes],
+  )
+
+  const showGraph = () => {
+    setMessage(null)
+    setTooltip(null)
+    setHoverEdgeKey(null)
+    setHoverNodeId(null)
+
+    const parsed = Number(draftNodeCount.trim())
+    if (
+      !Number.isInteger(parsed) ||
+      parsed < NODE_COUNT_MIN ||
+      parsed > NODE_COUNT_MAX
+    ) {
+      setMessage(
+        `ノード数は ${NODE_COUNT_MIN} 〜 ${NODE_COUNT_MAX} の整数を入力してください。`,
+      )
+      return
+    }
+    setNodeCount(parsed)
+  }
 
   const getSvg = () => {
     const svg = rootRef.current?.querySelector('svg.scratch-network-svg')
@@ -116,7 +142,9 @@ export function ScratchPage() {
       {message ? (
         <p
           className={
-            message.includes('失敗') || message.includes('見つかりません')
+            message.includes('失敗') ||
+            message.includes('見つかりません') ||
+            message.includes('入力してください')
               ? 'tn-page-message error'
               : 'tn-page-message'
           }
@@ -171,42 +199,57 @@ export function ScratchPage() {
             </aside>
           </div>
 
-          <ScratchGraph
-            nodes={nodes}
-            edges={edges}
-            edgeMinAbs={edgeMinAbs}
-            tooltip={tooltip}
-            hoverEdgeKey={hoverEdgeKey}
-            hoverNodeId={hoverNodeId}
-            onHoverEdge={(key, nextTooltip) => {
-              setHoverEdgeKey(key)
-              setTooltip(nextTooltip)
-            }}
-            onHoverNode={(id, nextTooltip) => {
-              setHoverNodeId(id)
-              setTooltip(nextTooltip)
-            }}
-          />
+          {network ? (
+            <ScratchGraph
+              nodes={nodes}
+              edges={edges}
+              edgeMinAbs={edgeMinAbs}
+              tooltip={tooltip}
+              hoverEdgeKey={hoverEdgeKey}
+              hoverNodeId={hoverNodeId}
+              onHoverEdge={(key, nextTooltip) => {
+                setHoverEdgeKey(key)
+                setTooltip(nextTooltip)
+              }}
+              onHoverNode={(id, nextTooltip) => {
+                setHoverNodeId(id)
+                setTooltip(nextTooltip)
+              }}
+            />
+          ) : (
+            <div className="tn-graph-placeholder" role="status">
+              ノード数を入力し、「表示」を押すとグラフを描画します（
+              {NODE_COUNT_MIN}〜{NODE_COUNT_MAX}）。
+            </div>
+          )}
 
           <div className="tn-bottom-control">
             <label className="tn-bottom-control-label" htmlFor="tn-node-count">
-              ノード数: {nodeCount}
+              ノード数
+              {nodeCount != null ? `（表示中: ${nodeCount}）` : ''}
             </label>
-            <input
-              id="tn-node-count"
-              className="tn-slider tn-slider-bottom"
-              type="range"
-              min={NODE_COUNT_MIN}
-              max={NODE_COUNT_MAX}
-              step={1}
-              value={nodeCount}
-              onChange={(e) => {
-                setTooltip(null)
-                setHoverEdgeKey(null)
-                setHoverNodeId(null)
-                setNodeCount(Number(e.target.value))
-              }}
-            />
+            <div className="tn-node-count-row">
+              <input
+                id="tn-node-count"
+                className="tn-node-count-input"
+                type="number"
+                min={NODE_COUNT_MIN}
+                max={NODE_COUNT_MAX}
+                step={1}
+                value={draftNodeCount}
+                onChange={(e) => setDraftNodeCount(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') showGraph()
+                }}
+              />
+              <button
+                type="button"
+                className="tn-page-btn"
+                onClick={showGraph}
+              >
+                表示
+              </button>
+            </div>
           </div>
         </div>
       </div>

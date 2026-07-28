@@ -7,18 +7,27 @@
  *
  * ノード数上限 30（Cytoscape と同じ試し表示用）。
  */
+/** カテゴリ1件＝グラフ上の楕円ノード1個 */
 export type ScratchNode = {
+  /** ノードの一意キー（エッジの from / to から参照される） */
   id: string
+  /** 楕円内に表示するカテゴリ名 */
   label: string
+  /** 前期の金額・件数 */
   before: number
+  /** 当期の金額・件数 */
   after: number
   /** 圏外との純増減（正=流入、負=流出） */
   external: number
 }
 
+/** カテゴリ間の遷移1本＝グラフ上の有向矢印1本 */
 export type ScratchEdge = {
+  /** 遷移元ノードの id */
   from: string
+  /** 遷移先ノードの id */
   to: string
+  /** 遷移件数（矢印ラベル・線の太さの元になる） */
   value: number
   /**
    * true のとき線をグレー表示（スライダーしきい値より優先）。
@@ -27,11 +36,12 @@ export type ScratchEdge = {
   muted?: boolean
 }
 
+/** ノード数スライダーの下限 */
 export const NODE_COUNT_MIN = 2
 /** 試し表示用の上限（Cytoscape / GoJS と同じ） */
 export const NODE_COUNT_MAX = 30
 
-/** 先頭8件は従来どおり。9件目以降は試し用の連番カテゴリ */
+/** 元画面を再現する固定8カテゴリ（9件目以降は NODE_POOL_EXTRA） */
 const NODE_POOL_BASE: ScratchNode[] = [
   {
     id: 'other',
@@ -91,9 +101,11 @@ const NODE_POOL_BASE: ScratchNode[] = [
   },
 ]
 
+/** 上限 30 まで埋める試し用の連番カテゴリ（カテゴリ9〜30） */
 const NODE_POOL_EXTRA: ScratchNode[] = Array.from(
   { length: NODE_COUNT_MAX - NODE_POOL_BASE.length },
   (_, i) => {
+    /** 表示用の連番（カテゴリ9 始まり） */
     const n = i + 9
     return {
       id: `cat-${n}`,
@@ -105,8 +117,10 @@ const NODE_POOL_EXTRA: ScratchNode[] = Array.from(
   },
 )
 
+/** 全ノード候補の倉庫。buildScratchNetwork が先頭から切り出す */
 const NODE_POOL: ScratchNode[] = [...NODE_POOL_BASE, ...NODE_POOL_EXTRA]
 
+/** 固定8カテゴリ間の遷移（元画面と同じ組み合わせ） */
 const EDGE_POOL_BASE: ScratchEdge[] = [
   { from: 'other', to: 'other-unselected', value: 1151 },
   { from: 'other', to: 'cat-a', value: 420 },
@@ -130,7 +144,9 @@ const EDGE_POOL_BASE: ScratchEdge[] = [
   { from: 'cat-a', to: 'cat-f', value: 130 },
 ]
 
+/** 連番カテゴリ向けの遷移。「その他」との往復＋隣のカテゴリからの流入 */
 const EDGE_POOL_EXTRA: ScratchEdge[] = NODE_POOL_EXTRA.flatMap((node, i) => {
+  /** このカテゴリを起点・終点とする遷移 */
   const edges: ScratchEdge[] = [
     { from: 'other', to: node.id, value: 40 + i * 7 },
     { from: node.id, to: 'other', value: 20 + i * 3 },
@@ -145,6 +161,7 @@ const EDGE_POOL_EXTRA: ScratchEdge[] = NODE_POOL_EXTRA.flatMap((node, i) => {
   return edges
 })
 
+/** 全矢印候補の倉庫。表示中ノード同士のものだけ buildScratchNetwork が残す */
 const EDGE_POOL: ScratchEdge[] = [...EDGE_POOL_BASE, ...EDGE_POOL_EXTRA]
 
 /** しきい値未満（または muted 指定）ならグレー表示対象 */
@@ -154,16 +171,29 @@ export function isGrayEdge(edge: ScratchEdge, edgeMinAbs: number): boolean {
   return Math.abs(edge.value) < edgeMinAbs
 }
 
+/**
+ * 倉庫（NODE_POOL / EDGE_POOL）から、今回使う分だけ取り出す。
+ * 描画はしない。返すのは材料の { nodes, edges } のみ。
+ *
+ * 手順:
+ * 1. count を 2〜30 に丸めて n にする
+ * 2. NODE_POOL の先頭 n 件を nodes にする
+ * 3. EDGE_POOL から「from も to も nodes にいる」矢印だけ残す
+ */
 export function buildScratchNetwork(count: number): {
   nodes: ScratchNode[]
   edges: ScratchEdge[]
 } {
+  // 例: 1→2、4→4、100→30
   const n = Math.min(
     NODE_COUNT_MAX,
     Math.max(NODE_COUNT_MIN, Math.floor(count)),
   )
+  // 倉庫から先頭 n 個だけ会議室に入れる
   const nodes = NODE_POOL.slice(0, n)
+  // 会議室にいる人の id 名簿
   const ids = new Set(nodes.map((node) => node.id))
+  // 名簿同士の矢印だけ残す（片方が会議室外なら捨てる）
   const edges = EDGE_POOL.filter(
     (edge) => ids.has(edge.from) && ids.has(edge.to),
   )
