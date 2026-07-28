@@ -22,10 +22,16 @@ type TooltipState = {
   lines: string[]
 }
 
+/**
+ * Cytoscape 版ページ。
+ * state を持ち、Data → Helpers → Cytoscape インスタンスをつなぐ司令塔。
+ */
 export function CytoscapePage() {
   const hostRef = useRef<HTMLDivElement>(null)
   const cyRef = useRef<Core | null>(null)
+  /** グラフに渡すノード数（スライダー確定値） */
   const [nodeCount, setNodeCount] = useState(30)
+  /** 流入/流出線をグレーにするしきい値（絶対値） */
   const [edgeMinAbs, setEdgeMinAbs] = useState(EDGE_MIN_DEFAULT)
   const [tooltip, setTooltip] = useState<TooltipState | null>(null)
   const [message, setMessage] = useState<string | null>(null)
@@ -37,6 +43,7 @@ export function CytoscapePage() {
   const setTooltipRef = useRef(setTooltip)
   setTooltipRef.current = setTooltip
 
+  // --- Data ---
   const network = useMemo(
     () => buildCytoscapeNetwork(nodeCount),
     [nodeCount],

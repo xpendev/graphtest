@@ -15,7 +15,10 @@ export function formatInt(n: number): string {
   return n.toLocaleString('ja-JP')
 }
 
-/** しきい値未満の遷移を除外する */
+/**
+ * しきい値未満の遷移を除外する。
+ * （AG Charts Chord はグレー個別制御が難しいため非表示）
+ */
 export function filterAgChartsEdges(
   edges: AgChartsNetworkEdge[],
   edgeMinAbs: number,
@@ -24,7 +27,7 @@ export function filterAgChartsEdges(
 }
 
 /**
- * Chord 用データ行。
+ * Chord 用データ行へ変換する。
  * - size: 見た目を均等にするための固定値（1）
  * - value: 実際の件数（ツールチップ表示用）
  */
@@ -33,12 +36,18 @@ export function toChordRows(
   nodes: AgChartsNetworkNode[],
 ): { from: string; to: string; size: number; value: number }[] {
   const labelById = new Map(nodes.map((node) => [node.id, node.label]))
-  return edges.map((edge) => ({
-    from: labelById.get(edge.from) ?? edge.from,
-    to: labelById.get(edge.to) ?? edge.to,
-    size: 1,
-    value: Math.abs(edge.value),
-  }))
+  const VISUAL_SIZE_EQUAL = 1
+
+  return edges.map((edge) => {
+    const fromLabel = labelById.get(edge.from) ?? edge.from
+    const toLabel = labelById.get(edge.to) ?? edge.to
+    return {
+      from: fromLabel,
+      to: toLabel,
+      size: VISUAL_SIZE_EQUAL,
+      value: Math.abs(edge.value),
+    }
+  })
 }
 
 /** ノード数スライダーの min / max */

@@ -7,15 +7,20 @@
  *
  * ノード数上限 30（Cytoscape / Scratch と同じ試し表示用）。
  */
+
+/** カテゴリ1件＝グラフ上の楕円ノード1個 */
 export type GoJsNetworkNode = {
   id: string
   label: string
+  /** 前期の購入量（画面座標や相対値ではない） */
   before: number
+  /** 当期の購入量 */
   after: number
   /** 圏外との純増減（正=流入、負=流出） */
   external: number
 }
 
+/** カテゴリ間の遷移1本＝有向矢印1本 */
 export type GoJsNetworkEdge = {
   from: string
   to: string
@@ -27,11 +32,12 @@ export type GoJsNetworkEdge = {
   muted?: boolean
 }
 
+/** ノード数の下限 */
 export const NODE_COUNT_MIN = 2
 /** 試し表示用の上限（Cytoscape / Scratch と同じ） */
 export const NODE_COUNT_MAX = 30
 
-/** 先頭8件は従来どおり。9件目以降は試し用の連番カテゴリ */
+/** 元画面を再現する固定8カテゴリ（9件目以降は NODE_POOL_EXTRA） */
 const NODE_POOL_BASE: GoJsNetworkNode[] = [
   {
     id: 'other',
@@ -91,22 +97,29 @@ const NODE_POOL_BASE: GoJsNetworkNode[] = [
   },
 ]
 
+/** 上限まで埋める試し用の連番カテゴリ */
 const NODE_POOL_EXTRA: GoJsNetworkNode[] = Array.from(
   { length: NODE_COUNT_MAX - NODE_POOL_BASE.length },
   (_, i) => {
     const n = i + 9
+    const dummyBefore = 100 + n * 17
+    const dummyAfter = 90 + n * 19
+    const dummyExternalSign = n % 3 === 0 ? 1 : -1
+    const dummyExternal = dummyExternalSign * (10 + n * 3)
     return {
       id: `cat-${n}`,
       label: `カテゴリ${n}`,
-      before: 100 + n * 17,
-      after: 90 + n * 19,
-      external: (n % 3 === 0 ? 1 : -1) * (10 + n * 3),
+      before: dummyBefore,
+      after: dummyAfter,
+      external: dummyExternal,
     }
   },
 )
 
+/** 全ノード候補の倉庫 */
 const NODE_POOL: GoJsNetworkNode[] = [...NODE_POOL_BASE, ...NODE_POOL_EXTRA]
 
+/** 固定8カテゴリ間の遷移 */
 const EDGE_POOL_BASE: GoJsNetworkEdge[] = [
   { from: 'other', to: 'other-unselected', value: 1151 },
   { from: 'other', to: 'cat-a', value: 420 },
@@ -130,21 +143,25 @@ const EDGE_POOL_BASE: GoJsNetworkEdge[] = [
   { from: 'cat-a', to: 'cat-f', value: 130 },
 ]
 
-const EDGE_POOL_EXTRA: GoJsNetworkEdge[] = NODE_POOL_EXTRA.flatMap((node, i) => {
-  const edges: GoJsNetworkEdge[] = [
-    { from: 'other', to: node.id, value: 40 + i * 7 },
-    { from: node.id, to: 'other', value: 20 + i * 3 },
-  ]
-  if (i > 0) {
-    edges.push({
-      from: NODE_POOL_EXTRA[i - 1].id,
-      to: node.id,
-      value: 15 + i * 2,
-    })
-  }
-  return edges
-})
+/** 連番カテゴリ向けの遷移 */
+const EDGE_POOL_EXTRA: GoJsNetworkEdge[] = NODE_POOL_EXTRA.flatMap(
+  (node, i) => {
+    const edges: GoJsNetworkEdge[] = [
+      { from: 'other', to: node.id, value: 40 + i * 7 },
+      { from: node.id, to: 'other', value: 20 + i * 3 },
+    ]
+    if (i > 0) {
+      edges.push({
+        from: NODE_POOL_EXTRA[i - 1].id,
+        to: node.id,
+        value: 15 + i * 2,
+      })
+    }
+    return edges
+  },
+)
 
+/** 全矢印候補の倉庫 */
 const EDGE_POOL: GoJsNetworkEdge[] = [...EDGE_POOL_BASE, ...EDGE_POOL_EXTRA]
 
 /** しきい値未満（または muted 指定）ならグレー表示対象 */
@@ -154,6 +171,12 @@ export function isGrayEdge(edge: GoJsNetworkEdge, edgeMinAbs: number): boolean {
   return Math.abs(edge.value) < edgeMinAbs
 }
 
+/**
+ * 倉庫から今回使う分だけ取り出す（描画はしない）。
+ * 1. count を 2〜30 に丸める
+ * 2. NODE_POOL の先頭 n 件
+ * 3. 両端が nodes にいるエッジだけ残す
+ */
 export function buildGoJsNetwork(count: number): {
   nodes: GoJsNetworkNode[]
   edges: GoJsNetworkEdge[]

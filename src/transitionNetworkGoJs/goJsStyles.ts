@@ -5,6 +5,7 @@ const $ = go.GraphObject.make
 /** PNG 出力・キャンバス背景色 */
 export const GOJS_DIAGRAM_BG = '#1a1f24'
 
+// --- ノード色 ---
 /** ノード塗り（通常） */
 export const NODE_FILL = '#3d7fa8'
 /** ノード枠線（通常） */
@@ -16,6 +17,7 @@ export const NODE_STROKE_HOVER = '#c5e6f8'
 /** ノード内テキスト色 */
 export const NODE_TEXT = '#ffffff'
 
+// --- 遷移リンク色 ---
 /** リンク線・矢印（通常） */
 export const LINK_STROKE = '#5b9fd4'
 /** リンク線（ホバー） */
@@ -29,15 +31,25 @@ export const LINK_LABEL = '#e8eef3'
 /** 表示最小値未満のリンクラベル */
 export const LINK_LABEL_MUTED = '#9aa3ab'
 
+// --- 圏外リンク色 ---
 /** 圏外リンク色 */
 export const EXTERNAL_LINK_STROKE = '#7eb6de'
 /** 圏外リンク（グレー） */
 export const EXTERNAL_LINK_STROKE_MUTED = '#6a737a'
 
+// --- ノードサイズ ---
 /** ノード楕円の幅 */
 export const NODE_WIDTH = 168
 /** ノード楕円の高さ */
 export const NODE_HEIGHT = 64
+
+/** 件数から線幅を求める（おおよそ 1.2〜4） */
+function linkStrokeWidthFromValue(value: number): number {
+  const BASE_WIDTH = 1.2
+  const VALUE_SCALE = 400
+  const MAX_WIDTH = 4
+  return Math.min(MAX_WIDTH, BASE_WIDTH + Math.abs(value) / VALUE_SCALE)
+}
 
 type GraphObjectHandlers = {
   mouseEnter: (e: go.InputEvent, obj: go.GraphObject) => void
@@ -110,11 +122,7 @@ export function buildLinkTemplate(handlers: GraphObjectHandlers): go.Link {
     $(
       go.Shape,
       { name: 'PATH', stroke: LINK_STROKE, strokeWidth: 1.5 },
-      new go.Binding(
-        'strokeWidth',
-        'value',
-        (value: number) => Math.min(4, 1.2 + Math.abs(value) / 400),
-      ),
+      new go.Binding('strokeWidth', 'value', linkStrokeWidthFromValue),
       new go.Binding('stroke', 'muted', (muted: boolean) =>
         muted ? LINK_STROKE_MUTED : LINK_STROKE,
       ),

@@ -7,18 +7,26 @@
  *
  * ノード数上限 30（試し表示用。Scratch / GoJS / Cytoscape 共通）。
  */
+
+/** カテゴリ1件＝グラフ上の楕円ノード1個 */
 export type CytoscapeNetworkNode = {
+  /** ノードの一意キー（エッジの from / to から参照） */
   id: string
+  /** 表示名 */
   label: string
+  /** 前期の購入量（画面座標や相対値ではない） */
   before: number
+  /** 当期の購入量 */
   after: number
   /** 圏外との純増減（正=流入、負=流出） */
   external: number
 }
 
+/** カテゴリ間の遷移1本＝有向矢印1本 */
 export type CytoscapeNetworkEdge = {
   from: string
   to: string
+  /** 遷移件数 */
   value: number
   /**
    * true のとき線をグレー表示（スライダーしきい値より優先）。
@@ -27,11 +35,12 @@ export type CytoscapeNetworkEdge = {
   muted?: boolean
 }
 
+/** ノード数の下限 */
 export const NODE_COUNT_MIN = 2
 /** Cytoscape 試し表示用の上限 */
 export const NODE_COUNT_MAX = 30
 
-/** 先頭8件は従来どおり。9件目以降は試し用の連番カテゴリ */
+/** 元画面を再現する固定8カテゴリ（9件目以降は NODE_POOL_EXTRA） */
 const NODE_POOL_BASE: CytoscapeNetworkNode[] = [
   {
     id: 'other',
@@ -91,26 +100,33 @@ const NODE_POOL_BASE: CytoscapeNetworkNode[] = [
   },
 ]
 
+/** 上限まで埋める試し用の連番カテゴリ（カテゴリ9〜） */
 const NODE_POOL_EXTRA: CytoscapeNetworkNode[] = Array.from(
   { length: NODE_COUNT_MAX - NODE_POOL_BASE.length },
   (_, i) => {
     const n = i + 9
+    // ダミー生成（本番では API の値を使う）
+    const dummyBefore = 100 + n * 17
+    const dummyAfter = 90 + n * 19
+    const dummyExternalSign = n % 3 === 0 ? 1 : -1
+    const dummyExternal = dummyExternalSign * (10 + n * 3)
     return {
       id: `cat-${n}`,
       label: `カテゴリ${n}`,
-      before: 100 + n * 17,
-      after: 90 + n * 19,
-      external: (n % 3 === 0 ? 1 : -1) * (10 + n * 3),
+      before: dummyBefore,
+      after: dummyAfter,
+      external: dummyExternal,
     }
   },
 )
 
+/** 全ノード候補の倉庫。buildCytoscapeNetwork が先頭から切り出す */
 const NODE_POOL: CytoscapeNetworkNode[] = [
   ...NODE_POOL_BASE,
   ...NODE_POOL_EXTRA,
 ]
 
-/** 候補エッジ（両端が選ばれたノードに含まれるものだけ使用） */
+/** 固定8カテゴリ間の遷移 */
 const EDGE_POOL_BASE: CytoscapeNetworkEdge[] = [
   { from: 'other', to: 'other-unselected', value: 1151 },
   { from: 'other', to: 'cat-a', value: 420 },
@@ -164,13 +180,8 @@ const EDGE_POOL_EXTRA: CytoscapeNetworkEdge[] = (() => {
       pushEdge(node.id, ids[toIndex], value)
     }
 
-    // 一部だけ「その他」系との太い／細い接続を混ぜる
     if (i % 2 === 0) {
-      pushEdge(
-        'other',
-        node.id,
-        VALUE_TIERS[(i + 7) % VALUE_TIERS.length],
-      )
+      pushEdge('other', node.id, VALUE_TIERS[(i + 7) % VALUE_TIERS.length])
     }
     if (i % 3 === 0) {
       pushEdge(
@@ -184,6 +195,7 @@ const EDGE_POOL_EXTRA: CytoscapeNetworkEdge[] = (() => {
   return edges
 })()
 
+/** 全矢印候補の倉庫。表示中ノード同士のものだけ残す */
 const EDGE_POOL: CytoscapeNetworkEdge[] = [
   ...EDGE_POOL_BASE,
   ...EDGE_POOL_EXTRA,
@@ -199,6 +211,12 @@ export function isGrayEdge(
   return Math.abs(edge.value) < edgeMinAbs
 }
 
+/**
+ * 倉庫から今回使う分だけ取り出す（描画はしない）。
+ * 1. count を 2〜30 に丸める
+ * 2. NODE_POOL の先頭 n 件
+ * 3. 両端が nodes にいるエッジだけ残す
+ */
 export function buildCytoscapeNetwork(count: number): {
   nodes: CytoscapeNetworkNode[]
   edges: CytoscapeNetworkEdge[]

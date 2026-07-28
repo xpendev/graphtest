@@ -1,8 +1,17 @@
 import type { EdgeSingular } from 'cytoscape'
 
+/** 件数から線幅を求める（極少〜極多でおおよそ 1〜8） */
+function edgeWidthFromValue(value: number, hoverBoost = 0): number {
+  const magnitude = Math.sqrt(Math.abs(value))
+  const base = (hoverBoost > 0 ? 1.4 : 0.9) + magnitude / 6
+  const cap = hoverBoost > 0 ? 9 : 8
+  return Math.min(cap, base)
+}
+
 /** Cytoscape グラフ本体の見た目定義（ノード／エッジ） */
 export const cytoscapeStyles = [
   {
+    // --- 通常ノード ---
     selector: 'node',
     style: {
       shape: 'ellipse' as const,
@@ -40,11 +49,11 @@ export const cytoscapeStyles = [
     },
   },
   {
+    // --- 通常の遷移線 ---
     selector: 'edge',
     style: {
-      // 件数の大小が線幅で分かるようスケール（極少〜極多で約 1〜8）
       width: (ele: EdgeSingular) =>
-        Math.min(8, 0.9 + Math.sqrt(Math.abs(Number(ele.data('value')))) / 6),
+        edgeWidthFromValue(Number(ele.data('value'))),
       'line-color': '#5b9fd4',
       'target-arrow-color': '#5b9fd4',
       'target-arrow-shape': 'triangle' as const,
@@ -80,7 +89,7 @@ export const cytoscapeStyles = [
       'line-color': '#9fd0ef',
       'target-arrow-color': '#9fd0ef',
       width: (ele: EdgeSingular) =>
-        Math.min(9, 1.4 + Math.sqrt(Math.abs(Number(ele.data('value')))) / 6),
+        edgeWidthFromValue(Number(ele.data('value')), 1),
     },
   },
   {

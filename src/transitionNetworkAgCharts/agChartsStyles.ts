@@ -1,7 +1,7 @@
 import type { AgChartOptions } from 'ag-charts-enterprise'
 import { formatInt } from './agChartsHelpers'
 
-/** 既存実装に寄せたダーク基調の色 */
+// --- 色（他実装のダーク基調に合わせる） ---
 const NODE_FILL = '#3d7fa8'
 const NODE_STROKE = '#9fd0ef'
 const LINK_FILL = '#5b9fd4'
@@ -11,6 +11,7 @@ const TITLE_COLOR = '#eef5fa'
 const SUBTITLE_COLOR = '#8aa0b2'
 const BACKGROUND = '#1a1f24'
 
+/** Chord 1 行（Helpers の toChordRows の戻りと同じ形） */
 type ChordRow = {
   from: string
   to: string
@@ -44,9 +45,10 @@ export function buildChordOptions(data: ChordRow[]): AgChartOptions {
         type: 'chord',
         fromKey: 'from',
         toKey: 'to',
-        // size は見た目用の均等値。実件数は datum.value をツールチップで表示
+        // sizeKey は見た目用の均等値。実件数は datum.value をツールチップで表示
         sizeKey: 'size',
         sizeName: '件数',
+        // --- 外周ノード（カテゴリ） ---
         node: {
           fill: NODE_FILL,
           stroke: NODE_STROKE,
@@ -54,6 +56,7 @@ export function buildChordOptions(data: ChordRow[]): AgChartOptions {
           spacing: 1,
           width: 14,
         },
+        // --- 弧（遷移） ---
         link: {
           fill: LINK_FILL,
           fillOpacity: 0.35,
@@ -69,7 +72,9 @@ export function buildChordOptions(data: ChordRow[]): AgChartOptions {
           renderer: ({ datum }) => {
             const row = datum as ChordRow
             // ノードホバー時は from/to が揃わないことがあるのでガード
-            if (row?.from != null && row?.to != null && row?.value != null) {
+            const hasLink =
+              row?.from != null && row?.to != null && row?.value != null
+            if (hasLink) {
               return {
                 title: `${row.from} → ${row.to}`,
                 data: [{ label: '件数', value: formatInt(row.value) }],
