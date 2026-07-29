@@ -1,9 +1,11 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  buildScratchNetwork,
+  fetchScratchNetwork,
   NODE_COUNT_MAX,
   NODE_COUNT_MIN,
+  type ScratchEdge,
+  type ScratchNode,
 } from './scratchData'
 import {
   EDGE_MIN_DEFAULT,
@@ -29,13 +31,14 @@ function isValidNodeCount(value: number): boolean {
 
 /**
  * スクラッチ版ページ。
- * state を持ち、Data → Helpers → Graph をつなぐ司令塔。
+ * state を持ち、API → Helpers → Graph をつなぐ司令塔。
  */
 export function ScratchPage() {
   const rootRef = useRef<HTMLDivElement>(null)
   const [message, setMessage] = useState<string | null>(null)
   const [isCopying, setIsCopying] = useState(false)
   const [isDownloading, setIsDownloading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
   /** テキストボックスの入力（まだ確定していない値） */
   const [draftNodeCount, setDraftNodeCount] = useState(String(NODE_COUNT_MIN))
@@ -43,16 +46,51 @@ export function ScratchPage() {
   const [nodeCount, setNodeCount] = useState<number | null>(NODE_COUNT_MIN)
   /** 流入/流出線をグレーにするしきい値（絶対値） */
   const [edgeMinAbs, setEdgeMinAbs] = useState(EDGE_MIN_DEFAULT)
+  /** API から取得したネットワーク */
+  const [network, setNetwork] = useState<{
+    nodes: ScratchNode[]
+    edges: ScratchEdge[]
+  } | null>(null)
 
   const [tooltip, setTooltip] = useState<TooltipState | null>(null)
   const [hoverEdgeKey, setHoverEdgeKey] = useState<string | null>(null)
   const [hoverNodeId, setHoverNodeId] = useState<string | null>(null)
 
-  // --- Data → Helpers（座標付き） ---
-  const network = useMemo(
-    () => (nodeCount == null ? null : buildScratchNetwork(nodeCount)),
-    [nodeCount],
-  )
+  // --- API → Helpers（座標付き） ---
+  useEffect(() => {
+    if (nodeCount == null) {
+      setNetwork(null)
+      setIsLoading(false)
+      return
+    }
+
+    let cancelled = false
+    setIsLoading(true)
+    setMessage(null)
+
+    void fetchScratchNetwork(nodeCount)
+      .then((next) => {
+        if (cancelled) return
+        setNetwork(next)
+      })
+      .catch((error: unknown) => {
+        if (cancelled) return
+        setNetwork(null)
+        setMessage(
+          error instanceof Error
+            ? error.message
+            : '遷移ネットワークの取得に失敗しました。',
+        )
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [nodeCount])
+
   const nodes = useMemo(
     () => (network ? layoutNodes(network.nodes) : []),
     [network],
@@ -127,7 +165,8 @@ export function ScratchPage() {
     !!message &&
     (message.includes('失敗') ||
       message.includes('見つかりません') ||
-      message.includes('入力してください'))
+      message.includes('入力してください') ||
+      message.includes('取得に失敗'))
 
   return (
     <main className="tn-page">
@@ -226,7 +265,11 @@ export function ScratchPage() {
             </aside>
           </div>
 
-          {network ? (
+          {isLoading ? (
+            <div className="tn-graph-placeholder" role="status">
+              データを読み込み中…
+            </div>
+          ) : network ? (
             <ScratchGraph
               nodes={nodes}
               edges={edges}

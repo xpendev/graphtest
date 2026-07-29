@@ -23,6 +23,9 @@ npm run dev
 | `/transition-network/cytoscape` | Cytoscape.js（無料） |
 | `/transition-network/gojs` | GoJS（評価版・有償） |
 | `/transition-network/agcharts` | AG Charts Chord（Enterprise） |
+| `/api/transition-network?count=n` | 本番バックエンド想定のモック API（nodes / edges） |
+
+モック API のデータは件数ごとの専用 JSON です（`api/data/transition-network-2.json` 〜 `transition-network-30.json`）。
 
 詳細:
 

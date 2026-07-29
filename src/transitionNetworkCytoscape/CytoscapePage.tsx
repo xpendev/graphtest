@@ -1,7 +1,12 @@
 import cytoscape, { type Core } from 'cytoscape'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { buildCytoscapeNetwork, isGrayEdge } from './cytoscapeData'
+import {
+  fetchCytoscapeNetwork,
+  isGrayEdge,
+  type CytoscapeNetworkEdge,
+  type CytoscapeNetworkNode,
+} from './cytoscapeData'
 import {
   EDGE_MIN_DEFAULT,
   EDGE_MIN_MAX,
@@ -24,7 +29,7 @@ type TooltipState = {
 
 /**
  * Cytoscape 版ページ。
- * state を持ち、Data → Helpers → Cytoscape インスタンスをつなぐ司令塔。
+ * state を持ち、API → Helpers → Cytoscape インスタンスをつなぐ司令塔。
  */
 export function CytoscapePage() {
   const hostRef = useRef<HTMLDivElement>(null)
@@ -37,24 +42,53 @@ export function CytoscapePage() {
   const [message, setMessage] = useState<string | null>(null)
   const [isDownloading, setIsDownloading] = useState(false)
   const [isCopying, setIsCopying] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [network, setNetwork] = useState<{
+    nodes: CytoscapeNetworkNode[]
+    edges: CytoscapeNetworkEdge[]
+  } | null>(null)
   // React の setState を Cytoscape イベントから呼ぶための最新参照。
   // cy.on(...) はインスタンス生成時に一度だけ登録するため、
   // クロージャに古い setTooltip が残らないよう ref 経由にする。
   const setTooltipRef = useRef(setTooltip)
   setTooltipRef.current = setTooltip
 
-  // --- Data ---
-  const network = useMemo(
-    () => buildCytoscapeNetwork(nodeCount),
-    [nodeCount],
-  )
+  // --- API ---
+  useEffect(() => {
+    let cancelled = false
+    setIsLoading(true)
+    setMessage(null)
+
+    void fetchCytoscapeNetwork(nodeCount)
+      .then((next) => {
+        if (cancelled) return
+        setNetwork(next)
+      })
+      .catch((error: unknown) => {
+        if (cancelled) return
+        setNetwork(null)
+        setMessage(
+          error instanceof Error
+            ? error.message
+            : '遷移ネットワークの取得に失敗しました。',
+        )
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [nodeCount])
+
   const nodeById = useMemo(
-    () => new Map(network.nodes.map((node) => [node.id, node])),
-    [network.nodes],
+    () => new Map((network?.nodes ?? []).map((node) => [node.id, node])),
+    [network],
   )
 
   useEffect(() => {
-    if (!hostRef.current) return
+    if (!hostRef.current || !network) return
 
     // Cytoscape に渡す要素（ノード／エッジ）。見た目は cytoscapeStyles.ts。
     // 圏外矢印は「透明ゴーストノード + エッジ」で表現（エッジは両端ノード必須のため）。
@@ -207,7 +241,7 @@ export function CytoscapePage() {
       cy.layout({ name: 'preset' }).run()
       cy.fit(undefined, 40)
     }
-  }, [network.nodes, network.edges, nodeById, edgeMinAbs])
+  }, [network, nodeById, edgeMinAbs])
 
   useEffect(() => {
     return () => {
@@ -385,7 +419,11 @@ export function CytoscapePage() {
           </div>
 
           <div className="tn-graph-area">
-            <div className="tn-lib-badge">Cytoscape.js（無料）</div>
+            <div className="tn-lib-badge">
+              {isLoading
+                ? 'データを読み込み中…'
+                : 'Cytoscape.js（無料）'}
+            </div>
             <div ref={hostRef} className="tn-lib-canvas-host" />
             {tooltip ? (
               <div

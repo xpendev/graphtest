@@ -1,7 +1,12 @@
 import go from 'gojs'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { buildGoJsNetwork, isGrayEdge } from './goJsData'
+import {
+  fetchGoJsNetwork,
+  isGrayEdge,
+  type GoJsNetworkEdge,
+  type GoJsNetworkNode,
+} from './goJsData'
 import {
   EDGE_MIN_DEFAULT,
   EDGE_MIN_MAX,
@@ -63,7 +68,7 @@ type LinkModel = {
 
 /**
  * GoJS 版ページ。
- * state を持ち、Data → Helpers → Diagram モデルをつなぐ司令塔。
+ * state を持ち、API → Helpers → Diagram モデルをつなぐ司令塔。
  */
 export function GoJsPage() {
   const hostRef = useRef<HTMLDivElement>(null)
@@ -76,21 +81,56 @@ export function GoJsPage() {
   const [message, setMessage] = useState<string | null>(null)
   const [isDownloading, setIsDownloading] = useState(false)
   const [isCopying, setIsCopying] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [network, setNetwork] = useState<{
+    nodes: GoJsNetworkNode[]
+    edges: GoJsNetworkEdge[]
+  } | null>(null)
   // React の setState を GoJS GraphObject コールバックから呼ぶための最新参照。
   // mouseEnter / mouseLeave はテンプレート生成時に一度だけ登録するため、
   // クロージャに古い setTooltip が残らないよう ref 経由にする。
   const setTooltipRef = useRef(setTooltip)
   setTooltipRef.current = setTooltip
 
-  // --- Data ---
-  const network = useMemo(() => buildGoJsNetwork(nodeCount), [nodeCount])
+  // --- API ---
+  useEffect(() => {
+    let cancelled = false
+    setIsLoading(true)
+    setMessage(null)
+
+    void fetchGoJsNetwork(nodeCount)
+      .then((next) => {
+        if (cancelled) return
+        setNetwork(next)
+      })
+      .catch((error: unknown) => {
+        if (cancelled) return
+        setNetwork(null)
+        setMessage(
+          error instanceof Error
+            ? error.message
+            : '遷移ネットワークの取得に失敗しました。',
+        )
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [nodeCount])
+
   const nodeById = useMemo(
-    () => new Map(network.nodes.map((node) => [node.id, node])),
-    [network.nodes],
+    () => new Map((network?.nodes ?? []).map((node) => [node.id, node])),
+    [network],
   )
 
   // --- Helpers（座標・圏外モデル）→ GoJS モデル ---
   const modelData = useMemo(() => {
+    if (!network) {
+      return { nodes: [] as NodeModel[], links: [] as LinkModel[] }
+    }
     const positions = ellipsePositions(network.nodes.length)
     const external = buildExternalModels(
       network.nodes,
@@ -128,7 +168,7 @@ export function GoJsPage() {
         ...external.links,
       ],
     }
-  }, [network.nodes, network.edges, nodeById, edgeMinAbs])
+  }, [network, nodeById, edgeMinAbs])
 
   useEffect(() => {
     if (!hostRef.current) return
@@ -472,7 +512,11 @@ export function GoJsPage() {
           </div>
 
           <div className="tn-graph-area">
-            <div className="tn-lib-badge">GoJS（評価版・有償製品）</div>
+            <div className="tn-lib-badge">
+              {isLoading
+                ? 'データを読み込み中…'
+                : 'GoJS（評価版・有償製品）'}
+            </div>
             <div ref={hostRef} className="tn-lib-canvas-host" />
             {tooltip ? (
               <div

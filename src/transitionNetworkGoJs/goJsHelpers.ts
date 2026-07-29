@@ -72,11 +72,6 @@ export function ellipsePositions(count: number): { x: number; y: number }[] {
   })
 }
 
-/** @deprecated ellipsePositions と同じ */
-export function nodePositions(count: number): { x: number; y: number }[] {
-  return ellipsePositions(count)
-}
-
 type GhostModel = { key: string; category: string; loc: string }
 type ExternalLinkModel = {
   key: string

@@ -17,11 +17,6 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   })
 }
 
-export async function dataUrlToBlob(dataUrl: string): Promise<Blob> {
-  const response = await fetch(dataUrl)
-  return response.blob()
-}
-
 function buildPngFilename(prefix: string): string {
   const now = new Date()
   const pad = (n: number) => String(n).padStart(2, '0')

@@ -1,7 +1,8 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { transitionNetworkApiPlugin } from './api/viteTransitionNetworkApiPlugin.ts'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), transitionNetworkApiPlugin()],
 })

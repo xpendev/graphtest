@@ -6,9 +6,13 @@ import {
   ModuleRegistry,
 } from 'ag-charts-enterprise'
 import type { AgChartInstance, AgChartOptions } from 'ag-charts-community'
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { buildAgChartsNetwork } from './agChartsData'
+import {
+  fetchAgChartsNetwork,
+  type AgChartsNetworkEdge,
+  type AgChartsNetworkNode,
+} from './agChartsData'
 import {
   EDGE_MIN_DEFAULT,
   EDGE_MIN_MAX,
@@ -27,7 +31,7 @@ ModuleRegistry.registerModules([
 
 /**
  * AG Charts Chord 版ページ。
- * state を持ち、Data → Helpers → Chart options をつなぐ司令塔。
+ * state を持ち、API → Helpers → Chart options をつなぐ司令塔。
  */
 export function AgChartsPage() {
   const chartRef = useRef<AgChartInstance<AgChartOptions> | null>(null)
@@ -38,19 +42,49 @@ export function AgChartsPage() {
   const [message, setMessage] = useState<string | null>(null)
   const [isDownloading, setIsDownloading] = useState(false)
   const [isCopying, setIsCopying] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [network, setNetwork] = useState<{
+    nodes: AgChartsNetworkNode[]
+    edges: AgChartsNetworkEdge[]
+  } | null>(null)
 
-  // --- Data → Helpers → Styles ---
-  const network = useMemo(
-    () => buildAgChartsNetwork(nodeCount),
-    [nodeCount],
-  )
+  // --- API ---
+  useEffect(() => {
+    let cancelled = false
+    setIsLoading(true)
+    setMessage(null)
+
+    void fetchAgChartsNetwork(nodeCount)
+      .then((next) => {
+        if (cancelled) return
+        setNetwork(next)
+      })
+      .catch((error: unknown) => {
+        if (cancelled) return
+        setNetwork(null)
+        setMessage(
+          error instanceof Error
+            ? error.message
+            : '遷移ネットワークの取得に失敗しました。',
+        )
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [nodeCount])
+
+  // --- Helpers → Styles ---
   const visibleEdges = useMemo(
-    () => filterAgChartsEdges(network.edges, edgeMinAbs),
-    [network.edges, edgeMinAbs],
+    () => filterAgChartsEdges(network?.edges ?? [], edgeMinAbs),
+    [network, edgeMinAbs],
   )
   const chordData = useMemo(
-    () => toChordRows(visibleEdges, network.nodes),
-    [visibleEdges, network.nodes],
+    () => toChordRows(visibleEdges, network?.nodes ?? []),
+    [visibleEdges, network],
   )
   const options = useMemo(() => buildChordOptions(chordData), [chordData])
 
@@ -212,14 +246,24 @@ export function AgChartsPage() {
 
           <div className="tn-graph-area">
             <div className="tn-lib-badge">
-              AG Charts Chord（Enterprise・評価利用可）
+              {isLoading
+                ? 'データを読み込み中…'
+                : 'AG Charts Chord（Enterprise・評価利用可）'}
             </div>
             <div className="tn-lib-canvas-host tn-agcharts-host">
-              <AgCharts
-                ref={chartRef}
-                options={options}
-                style={{ width: '100%', height: '100%' }}
-              />
+              {network ? (
+                <AgCharts
+                  ref={chartRef}
+                  options={options}
+                  style={{ width: '100%', height: '100%' }}
+                />
+              ) : (
+                <div className="tn-graph-placeholder" role="status">
+                  {isLoading
+                    ? 'データを読み込み中…'
+                    : '表示できるデータがありません。'}
+                </div>
+              )}
             </div>
           </div>
 
