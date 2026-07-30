@@ -141,34 +141,29 @@
       "value": 297
     },
     {
-      "from": "other",
-      "to": "cat-10",
-      "value": 28
-    },
-    {
-      "from": "other",
-      "to": "cat-11",
-      "value": 59
-    },
-    {
-      "from": "other",
-      "to": "cat-12",
-      "value": 90
-    },
-    {
-      "from": "other",
-      "to": "cat-13",
-      "value": 121
-    },
-    {
-      "from": "other",
-      "to": "cat-14",
-      "value": 152
-    },
-    {
-      "from": "other-unselected",
+      "from": "cat-10",
       "to": "other",
-      "value": 66
+      "value": 202
+    },
+    {
+      "from": "cat-11",
+      "to": "other",
+      "value": 219
+    },
+    {
+      "from": "cat-12",
+      "to": "other",
+      "value": 236
+    },
+    {
+      "from": "cat-13",
+      "to": "other",
+      "value": 253
+    },
+    {
+      "from": "cat-14",
+      "to": "other",
+      "value": 270
     },
     {
       "from": "other-unselected",
@@ -176,9 +171,9 @@
       "value": 128
     },
     {
-      "from": "other-unselected",
-      "to": "cat-b",
-      "value": 35
+      "from": "cat-b",
+      "to": "other-unselected",
+      "value": 131
     },
     {
       "from": "other-unselected",
@@ -186,9 +181,9 @@
       "value": 190
     },
     {
-      "from": "other-unselected",
-      "to": "cat-d",
-      "value": 22
+      "from": "cat-d",
+      "to": "other-unselected",
+      "value": 165
     },
     {
       "from": "other-unselected",
@@ -201,29 +196,29 @@
       "value": 283
     },
     {
-      "from": "other-unselected",
-      "to": "cat-9",
-      "value": 14
+      "from": "cat-9",
+      "to": "other-unselected",
+      "value": 216
     },
     {
-      "from": "other-unselected",
-      "to": "cat-10",
-      "value": 45
+      "from": "cat-10",
+      "to": "other-unselected",
+      "value": 233
     },
     {
-      "from": "other-unselected",
-      "to": "cat-11",
-      "value": 76
+      "from": "cat-11",
+      "to": "other-unselected",
+      "value": 250
     },
     {
-      "from": "other-unselected",
-      "to": "cat-12",
-      "value": 107
+      "from": "cat-12",
+      "to": "other-unselected",
+      "value": 267
     },
     {
-      "from": "other-unselected",
-      "to": "cat-13",
-      "value": 138
+      "from": "cat-13",
+      "to": "other-unselected",
+      "value": 284
     },
     {
       "from": "other-unselected",
@@ -231,19 +226,9 @@
       "value": 169
     },
     {
-      "from": "cat-a",
-      "to": "other",
-      "value": 95
-    },
-    {
-      "from": "cat-a",
-      "to": "other-unselected",
-      "value": 48
-    },
-    {
-      "from": "cat-a",
-      "to": "cat-b",
-      "value": 62
+      "from": "cat-b",
+      "to": "cat-a",
+      "value": 162
     },
     {
       "from": "cat-a",
@@ -261,29 +246,29 @@
       "value": 269
     },
     {
-      "from": "cat-a",
-      "to": "cat-f",
-      "value": 130
+      "from": "cat-f",
+      "to": "cat-a",
+      "value": 230
     },
     {
-      "from": "cat-a",
-      "to": "cat-9",
-      "value": 31
+      "from": "cat-9",
+      "to": "cat-a",
+      "value": 247
     },
     {
-      "from": "cat-a",
-      "to": "cat-10",
-      "value": 62
+      "from": "cat-10",
+      "to": "cat-a",
+      "value": 264
     },
     {
-      "from": "cat-a",
-      "to": "cat-11",
-      "value": 93
+      "from": "cat-11",
+      "to": "cat-a",
+      "value": 281
     },
     {
-      "from": "cat-a",
-      "to": "cat-12",
-      "value": 124
+      "from": "cat-12",
+      "to": "cat-a",
+      "value": 298
     },
     {
       "from": "cat-a",
@@ -296,24 +281,9 @@
       "value": 186
     },
     {
-      "from": "cat-b",
-      "to": "other",
-      "value": 75
-    },
-    {
-      "from": "cat-b",
-      "to": "other-unselected",
-      "value": 131
-    },
-    {
-      "from": "cat-b",
-      "to": "cat-a",
-      "value": 162
-    },
-    {
-      "from": "cat-b",
-      "to": "cat-c",
-      "value": 110
+      "from": "cat-c",
+      "to": "cat-b",
+      "value": 210
     },
     {
       "from": "cat-b",
@@ -326,19 +296,19 @@
       "value": 286
     },
     {
-      "from": "cat-b",
-      "to": "cat-f",
-      "value": 17
+      "from": "cat-f",
+      "to": "cat-b",
+      "value": 88
     },
     {
-      "from": "cat-b",
-      "to": "cat-9",
-      "value": 48
+      "from": "cat-9",
+      "to": "cat-b",
+      "value": 278
     },
     {
-      "from": "cat-b",
-      "to": "cat-10",
-      "value": 79
+      "from": "cat-10",
+      "to": "cat-b",
+      "value": 295
     },
     {
       "from": "cat-b",
@@ -361,39 +331,19 @@
       "value": 203
     },
     {
-      "from": "cat-c",
-      "to": "other",
-      "value": 117
+      "from": "cat-d",
+      "to": "cat-c",
+      "value": 258
     },
     {
-      "from": "cat-c",
-      "to": "other-unselected",
-      "value": 148
+      "from": "cat-e",
+      "to": "cat-c",
+      "value": 275
     },
     {
-      "from": "cat-c",
-      "to": "cat-a",
-      "value": 12
-    },
-    {
-      "from": "cat-c",
-      "to": "cat-b",
-      "value": 210
-    },
-    {
-      "from": "cat-c",
-      "to": "cat-d",
-      "value": 8
-    },
-    {
-      "from": "cat-c",
-      "to": "cat-e",
-      "value": 18
-    },
-    {
-      "from": "cat-c",
-      "to": "cat-f",
-      "value": 34
+      "from": "cat-f",
+      "to": "cat-c",
+      "value": 292
     },
     {
       "from": "cat-c",
@@ -427,38 +377,13 @@
     },
     {
       "from": "cat-d",
-      "to": "other",
-      "value": 134
-    },
-    {
-      "from": "cat-d",
-      "to": "other-unselected",
-      "value": 165
-    },
-    {
-      "from": "cat-d",
-      "to": "cat-a",
-      "value": 196
-    },
-    {
-      "from": "cat-d",
-      "to": "cat-b",
-      "value": 227
-    },
-    {
-      "from": "cat-d",
-      "to": "cat-c",
-      "value": 258
-    },
-    {
-      "from": "cat-d",
       "to": "cat-e",
       "value": 20
     },
     {
-      "from": "cat-d",
-      "to": "cat-f",
-      "value": 5
+      "from": "cat-f",
+      "to": "cat-d",
+      "value": 23
     },
     {
       "from": "cat-d",
@@ -491,39 +416,9 @@
       "value": 237
     },
     {
-      "from": "cat-e",
-      "to": "other",
-      "value": 150
-    },
-    {
-      "from": "cat-e",
-      "to": "other-unselected",
-      "value": 182
-    },
-    {
-      "from": "cat-e",
-      "to": "cat-a",
-      "value": 44
-    },
-    {
-      "from": "cat-e",
-      "to": "cat-b",
-      "value": 244
-    },
-    {
-      "from": "cat-e",
-      "to": "cat-c",
-      "value": 275
-    },
-    {
-      "from": "cat-e",
-      "to": "cat-d",
-      "value": 6
-    },
-    {
-      "from": "cat-e",
-      "to": "cat-f",
-      "value": 68
+      "from": "cat-f",
+      "to": "cat-e",
+      "value": 210
     },
     {
       "from": "cat-e",
@@ -557,41 +452,6 @@
     },
     {
       "from": "cat-f",
-      "to": "other",
-      "value": 168
-    },
-    {
-      "from": "cat-f",
-      "to": "other-unselected",
-      "value": 199
-    },
-    {
-      "from": "cat-f",
-      "to": "cat-a",
-      "value": 230
-    },
-    {
-      "from": "cat-f",
-      "to": "cat-b",
-      "value": 88
-    },
-    {
-      "from": "cat-f",
-      "to": "cat-c",
-      "value": 292
-    },
-    {
-      "from": "cat-f",
-      "to": "cat-d",
-      "value": 23
-    },
-    {
-      "from": "cat-f",
-      "to": "cat-e",
-      "value": 210
-    },
-    {
-      "from": "cat-f",
       "to": "cat-9",
       "value": 116
     },
@@ -622,46 +482,6 @@
     },
     {
       "from": "cat-9",
-      "to": "other",
-      "value": 185
-    },
-    {
-      "from": "cat-9",
-      "to": "other-unselected",
-      "value": 216
-    },
-    {
-      "from": "cat-9",
-      "to": "cat-a",
-      "value": 247
-    },
-    {
-      "from": "cat-9",
-      "to": "cat-b",
-      "value": 278
-    },
-    {
-      "from": "cat-9",
-      "to": "cat-c",
-      "value": 9
-    },
-    {
-      "from": "cat-9",
-      "to": "cat-d",
-      "value": 40
-    },
-    {
-      "from": "cat-9",
-      "to": "cat-e",
-      "value": 71
-    },
-    {
-      "from": "cat-9",
-      "to": "cat-f",
-      "value": 102
-    },
-    {
-      "from": "cat-9",
       "to": "cat-10",
       "value": 164
     },
@@ -687,51 +507,6 @@
     },
     {
       "from": "cat-10",
-      "to": "other",
-      "value": 202
-    },
-    {
-      "from": "cat-10",
-      "to": "other-unselected",
-      "value": 233
-    },
-    {
-      "from": "cat-10",
-      "to": "cat-a",
-      "value": 264
-    },
-    {
-      "from": "cat-10",
-      "to": "cat-b",
-      "value": 295
-    },
-    {
-      "from": "cat-10",
-      "to": "cat-c",
-      "value": 26
-    },
-    {
-      "from": "cat-10",
-      "to": "cat-d",
-      "value": 57
-    },
-    {
-      "from": "cat-10",
-      "to": "cat-e",
-      "value": 88
-    },
-    {
-      "from": "cat-10",
-      "to": "cat-f",
-      "value": 119
-    },
-    {
-      "from": "cat-10",
-      "to": "cat-9",
-      "value": 150
-    },
-    {
-      "from": "cat-10",
       "to": "cat-11",
       "value": 212
     },
@@ -746,59 +521,9 @@
       "value": 274
     },
     {
-      "from": "cat-10",
-      "to": "cat-14",
-      "value": 5
-    },
-    {
-      "from": "cat-11",
-      "to": "other",
-      "value": 219
-    },
-    {
-      "from": "cat-11",
-      "to": "other-unselected",
-      "value": 250
-    },
-    {
-      "from": "cat-11",
-      "to": "cat-a",
-      "value": 281
-    },
-    {
-      "from": "cat-11",
-      "to": "cat-b",
-      "value": 12
-    },
-    {
-      "from": "cat-11",
-      "to": "cat-c",
-      "value": 43
-    },
-    {
-      "from": "cat-11",
-      "to": "cat-d",
-      "value": 74
-    },
-    {
-      "from": "cat-11",
-      "to": "cat-e",
-      "value": 105
-    },
-    {
-      "from": "cat-11",
-      "to": "cat-f",
-      "value": 136
-    },
-    {
-      "from": "cat-11",
-      "to": "cat-9",
-      "value": 167
-    },
-    {
-      "from": "cat-11",
+      "from": "cat-14",
       "to": "cat-10",
-      "value": 198
+      "value": 249
     },
     {
       "from": "cat-11",
@@ -811,69 +536,14 @@
       "value": 291
     },
     {
-      "from": "cat-11",
-      "to": "cat-14",
-      "value": 22
-    },
-    {
-      "from": "cat-12",
-      "to": "other",
-      "value": 236
-    },
-    {
-      "from": "cat-12",
-      "to": "other-unselected",
-      "value": 267
-    },
-    {
-      "from": "cat-12",
-      "to": "cat-a",
-      "value": 298
-    },
-    {
-      "from": "cat-12",
-      "to": "cat-b",
-      "value": 29
-    },
-    {
-      "from": "cat-12",
-      "to": "cat-c",
-      "value": 60
-    },
-    {
-      "from": "cat-12",
-      "to": "cat-d",
-      "value": 91
-    },
-    {
-      "from": "cat-12",
-      "to": "cat-e",
-      "value": 122
-    },
-    {
-      "from": "cat-12",
-      "to": "cat-f",
-      "value": 153
-    },
-    {
-      "from": "cat-12",
-      "to": "cat-9",
-      "value": 184
-    },
-    {
-      "from": "cat-12",
-      "to": "cat-10",
-      "value": 215
-    },
-    {
-      "from": "cat-12",
+      "from": "cat-14",
       "to": "cat-11",
-      "value": 246
+      "value": 280
     },
     {
-      "from": "cat-12",
-      "to": "cat-13",
-      "value": 8
+      "from": "cat-13",
+      "to": "cat-12",
+      "value": 294
     },
     {
       "from": "cat-12",
@@ -882,133 +552,8 @@
     },
     {
       "from": "cat-13",
-      "to": "other",
-      "value": 253
-    },
-    {
-      "from": "cat-13",
-      "to": "other-unselected",
-      "value": 284
-    },
-    {
-      "from": "cat-13",
-      "to": "cat-a",
-      "value": 15
-    },
-    {
-      "from": "cat-13",
-      "to": "cat-b",
-      "value": 46
-    },
-    {
-      "from": "cat-13",
-      "to": "cat-c",
-      "value": 77
-    },
-    {
-      "from": "cat-13",
-      "to": "cat-d",
-      "value": 108
-    },
-    {
-      "from": "cat-13",
-      "to": "cat-e",
-      "value": 139
-    },
-    {
-      "from": "cat-13",
-      "to": "cat-f",
-      "value": 170
-    },
-    {
-      "from": "cat-13",
-      "to": "cat-9",
-      "value": 201
-    },
-    {
-      "from": "cat-13",
-      "to": "cat-10",
-      "value": 232
-    },
-    {
-      "from": "cat-13",
-      "to": "cat-11",
-      "value": 263
-    },
-    {
-      "from": "cat-13",
-      "to": "cat-12",
-      "value": 294
-    },
-    {
-      "from": "cat-13",
       "to": "cat-14",
       "value": 56
-    },
-    {
-      "from": "cat-14",
-      "to": "other",
-      "value": 270
-    },
-    {
-      "from": "cat-14",
-      "to": "other-unselected",
-      "value": 1
-    },
-    {
-      "from": "cat-14",
-      "to": "cat-a",
-      "value": 32
-    },
-    {
-      "from": "cat-14",
-      "to": "cat-b",
-      "value": 63
-    },
-    {
-      "from": "cat-14",
-      "to": "cat-c",
-      "value": 94
-    },
-    {
-      "from": "cat-14",
-      "to": "cat-d",
-      "value": 125
-    },
-    {
-      "from": "cat-14",
-      "to": "cat-e",
-      "value": 156
-    },
-    {
-      "from": "cat-14",
-      "to": "cat-f",
-      "value": 187
-    },
-    {
-      "from": "cat-14",
-      "to": "cat-9",
-      "value": 218
-    },
-    {
-      "from": "cat-14",
-      "to": "cat-10",
-      "value": 249
-    },
-    {
-      "from": "cat-14",
-      "to": "cat-11",
-      "value": 280
-    },
-    {
-      "from": "cat-14",
-      "to": "cat-12",
-      "value": 11
-    },
-    {
-      "from": "cat-14",
-      "to": "cat-13",
-      "value": 42
     }
   ]
 }

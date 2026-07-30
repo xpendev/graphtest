@@ -20,11 +20,6 @@
       "from": "other",
       "to": "other-unselected",
       "value": 1151
-    },
-    {
-      "from": "other-unselected",
-      "to": "other",
-      "value": 66
     }
   ]
 }

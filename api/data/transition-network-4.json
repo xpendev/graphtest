@@ -47,38 +47,8 @@
     },
     {
       "from": "other-unselected",
-      "to": "other",
-      "value": 66
-    },
-    {
-      "from": "other-unselected",
       "to": "cat-a",
       "value": 128
-    },
-    {
-      "from": "other-unselected",
-      "to": "cat-b",
-      "value": 35
-    },
-    {
-      "from": "cat-a",
-      "to": "other",
-      "value": 95
-    },
-    {
-      "from": "cat-a",
-      "to": "other-unselected",
-      "value": 48
-    },
-    {
-      "from": "cat-a",
-      "to": "cat-b",
-      "value": 62
-    },
-    {
-      "from": "cat-b",
-      "to": "other",
-      "value": 75
     },
     {
       "from": "cat-b",
