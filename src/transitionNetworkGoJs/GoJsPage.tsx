@@ -109,7 +109,7 @@ export function GoJsPage() {
         setMessage(
           error instanceof Error
             ? error.message
-            : '遷移ネットワークの取得に失敗しました。',
+            : '曼荼羅チャートの取得に失敗しました。',
         )
       })
       .finally(() => {
@@ -414,7 +414,7 @@ export function GoJsPage() {
       <header className="tn-page-header">
         <div>
           <p className="tn-page-eyebrow">ライブラリ検証</p>
-          <h1 className="tn-page-title">遷移ネットワーク — GoJS</h1>
+          <h1 className="tn-page-title">曼荼羅チャート — GoJS</h1>
           <p className="tn-page-subtitle">
             商用ダイアグラムライブラリ GoJS（評価版）による実装です。ノード／リンクを
             テンプレート＋データバインドで定義します。ウォーターマークが出ることがあります。

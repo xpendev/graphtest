@@ -70,7 +70,7 @@ export function CytoscapePage() {
         setMessage(
           error instanceof Error
             ? error.message
-            : '遷移ネットワークの取得に失敗しました。',
+            : '曼荼羅チャートの取得に失敗しました。',
         )
       })
       .finally(() => {
@@ -321,7 +321,7 @@ export function CytoscapePage() {
       <header className="tn-page-header">
         <div>
           <p className="tn-page-eyebrow">ライブラリ検証</p>
-          <h1 className="tn-page-title">遷移ネットワーク — Cytoscape.js</h1>
+          <h1 className="tn-page-title">曼荼羅チャート — Cytoscape.js</h1>
           <p className="tn-page-subtitle">
             無料のグラフ可視化ライブラリ Cytoscape.js による実装です。生 SVG
             手書きではなく、ノード／エッジをデータとして渡します。

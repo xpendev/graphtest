@@ -26,7 +26,7 @@ const links = [
 export function HomePage() {
   return (
     <main className="tn-home">
-      <h1 className="tn-home-title">遷移ネットワーク検証</h1>
+      <h1 className="tn-home-title">曼荼羅チャート検証</h1>
       <p className="tn-home-lead">実装を選択してください</p>
       <nav className="tn-home-nav" aria-label="実装一覧">
         {links.map((item) => (

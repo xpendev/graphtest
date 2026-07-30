@@ -65,7 +65,7 @@ export function AgChartsPage() {
         setMessage(
           error instanceof Error
             ? error.message
-            : '遷移ネットワークの取得に失敗しました。',
+            : '曼荼羅チャートの取得に失敗しました。',
         )
       })
       .finally(() => {
@@ -147,7 +147,7 @@ export function AgChartsPage() {
       <header className="tn-page-header">
         <div>
           <p className="tn-page-eyebrow">ライブラリ検証</p>
-          <h1 className="tn-page-title">遷移ネットワーク — AG Charts Chord</h1>
+          <h1 className="tn-page-title">曼荼羅チャート — AG Charts Chord</h1>
           <p className="tn-page-subtitle">
             AG Charts Enterprise の Customised Chord
             で、カテゴリ間の流出入を1枚の円環図として表示します（圏外なし・最大30）。

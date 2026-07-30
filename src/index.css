@@ -72,7 +72,7 @@ body {
   font-size: 0.85rem;
 }
 
-/* 遷移ネットワーク共通レイアウト（Scratch / Cytoscape / GoJS） */
+/* 曼荼羅チャート共通レイアウト（Scratch / Cytoscape / GoJS） */
 .tn-page {
   min-height: 100vh;
   padding: 20px 24px 32px;

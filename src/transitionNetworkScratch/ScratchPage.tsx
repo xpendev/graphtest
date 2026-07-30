@@ -62,7 +62,7 @@ export function ScratchPage() {
         setMessage(
           error instanceof Error
             ? error.message
-            : '遷移ネットワークの取得に失敗しました。',
+            : '曼荼羅チャートの取得に失敗しました。',
         )
       })
       .finally(() => {
@@ -140,7 +140,7 @@ export function ScratchPage() {
       <header className="tn-page-header">
         <div>
           <p className="tn-page-eyebrow">検証用スパイク</p>
-          <h1 className="tn-page-title">遷移ネットワーク</h1>
+          <h1 className="tn-page-title">曼荼羅チャート</h1>
           <p className="tn-page-subtitle">スクラッチ（React + SVG）</p>
         </div>
         <div className="tn-page-actions">

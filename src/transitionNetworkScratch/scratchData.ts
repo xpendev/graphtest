@@ -1,5 +1,5 @@
 /**
- * 遷移ネットワークの型と API 取得。
+ * 曼荼羅チャートの型と API 取得。
  *
  * ノード／エッジ本体は本番バックエンド想定の
  * GET /api/transition-network?count=n から取得する。
@@ -35,7 +35,7 @@ export const NODE_COUNT_MIN = 2
 export const NODE_COUNT_MAX = 30
 
 /**
- * バックエンド想定 API から遷移ネットワークを取得する。
+ * バックエンド想定 API から曼荼羅チャートを取得する。
  * count は表示ノード数（2〜30）。サーバ側で先頭 n 件と対応エッジに絞り込む。
  */
 export async function fetchScratchNetwork(count: number): Promise<{
@@ -49,7 +49,7 @@ export async function fetchScratchNetwork(count: number): Promise<{
   const response = await fetch(`/api/transition-network?count=${n}`)
   if (!response.ok) {
     throw new Error(
-      `遷移ネットワークの取得に失敗しました（HTTP ${response.status}）。`,
+      `曼荼羅チャートの取得に失敗しました（HTTP ${response.status}）。`,
     )
   }
   return (await response.json()) as {

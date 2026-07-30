@@ -57,7 +57,7 @@ function ArrowMarker({ id, fill, size }: ArrowMarkerProps) {
 }
 
 /**
- * 中央の遷移ネットワーク SVG。
+ * 中央の曼荼羅チャート SVG。
  * 座標は props の nodes/edges（Helpers の戻り値）をそのまま使う。
  */
 export function ScratchGraph({
@@ -76,7 +76,8 @@ export function ScratchGraph({
         className="scratch-network-svg"
         viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
         role="img"
-        aria-label="カテゴリ間遷移ネットワーク"
+        aria-label="曼荼羅チャート"
+
       >
         <defs>
           {/* 矢じり部品置き場。line の markerEnd から id で参照する */}
