@@ -36,7 +36,7 @@ ModuleRegistry.registerModules([
 export function AgChartsPage() {
   const chartRef = useRef<AgChartInstance<AgChartOptions> | null>(null)
   /** グラフに渡すノード数（スライダー確定値） */
-  const [nodeCount, setNodeCount] = useState(30)
+  const [nodeCount, setNodeCount] = useState(8)
   /** しきい値未満の遷移を非表示にする絶対値 */
   const [edgeMinAbs, setEdgeMinAbs] = useState(EDGE_MIN_DEFAULT)
   const [message, setMessage] = useState<string | null>(null)

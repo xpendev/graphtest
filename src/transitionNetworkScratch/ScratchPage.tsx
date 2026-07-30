@@ -20,15 +20,6 @@ import {
   downloadScratchSvgAsPng,
 } from './scratchPng'
 
-/** 入力値が 2〜30 の整数かどうか */
-function isValidNodeCount(value: number): boolean {
-  return (
-    Number.isInteger(value) &&
-    value >= NODE_COUNT_MIN &&
-    value <= NODE_COUNT_MAX
-  )
-}
-
 /**
  * スクラッチ版ページ。
  * state を持ち、API → Helpers → Graph をつなぐ司令塔。
@@ -40,10 +31,8 @@ export function ScratchPage() {
   const [isDownloading, setIsDownloading] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
-  /** テキストボックスの入力（まだ確定していない値） */
-  const [draftNodeCount, setDraftNodeCount] = useState(String(NODE_COUNT_MIN))
-  /** 「表示」押下後にグラフへ渡すノード数 */
-  const [nodeCount, setNodeCount] = useState<number | null>(NODE_COUNT_MIN)
+  /** グラフに渡すノード数（スライダー確定値） */
+  const [nodeCount, setNodeCount] = useState(8)
   /** 流入/流出線をグレーにするしきい値（絶対値） */
   const [edgeMinAbs, setEdgeMinAbs] = useState(EDGE_MIN_DEFAULT)
   /** API から取得したネットワーク */
@@ -58,12 +47,6 @@ export function ScratchPage() {
 
   // --- API → Helpers（座標付き） ---
   useEffect(() => {
-    if (nodeCount == null) {
-      setNetwork(null)
-      setIsLoading(false)
-      return
-    }
-
     let cancelled = false
     setIsLoading(true)
     setMessage(null)
@@ -104,21 +87,6 @@ export function ScratchPage() {
     setTooltip(null)
     setHoverEdgeKey(null)
     setHoverNodeId(null)
-  }
-
-  /** 入力値を検証し、問題なければグラフ用ノード数を確定する */
-  const showGraph = () => {
-    setMessage(null)
-    clearHover()
-
-    const parsed = Number(draftNodeCount.trim())
-    if (!isValidNodeCount(parsed)) {
-      setMessage(
-        `ノード数は ${NODE_COUNT_MIN} 〜 ${NODE_COUNT_MAX} の整数を入力してください。`,
-      )
-      return
-    }
-    setNodeCount(parsed)
   }
 
   const getSvg = () => {
@@ -165,7 +133,6 @@ export function ScratchPage() {
     !!message &&
     (message.includes('失敗') ||
       message.includes('見つかりません') ||
-      message.includes('入力してください') ||
       message.includes('取得に失敗'))
 
   return (
@@ -288,34 +255,27 @@ export function ScratchPage() {
             />
           ) : (
             <div className="tn-graph-placeholder" role="status">
-              ノード数を入力し、「表示」を押すとグラフを描画します（
-              {NODE_COUNT_MIN}〜{NODE_COUNT_MAX}）。
+              グラフデータを表示できません。
             </div>
           )}
 
           <div className="tn-bottom-control">
             <label className="tn-bottom-control-label" htmlFor="tn-node-count">
-              ノード数
-              {nodeCount != null ? `（表示中: ${nodeCount}）` : ''}
+              ノード数: {nodeCount}
             </label>
-            <div className="tn-node-count-row">
-              <input
-                id="tn-node-count"
-                className="tn-node-count-input"
-                type="number"
-                min={NODE_COUNT_MIN}
-                max={NODE_COUNT_MAX}
-                step={1}
-                value={draftNodeCount}
-                onChange={(e) => setDraftNodeCount(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') showGraph()
-                }}
-              />
-              <button type="button" className="tn-page-btn" onClick={showGraph}>
-                表示
-              </button>
-            </div>
+            <input
+              id="tn-node-count"
+              className="tn-slider tn-slider-bottom"
+              type="range"
+              min={NODE_COUNT_MIN}
+              max={NODE_COUNT_MAX}
+              step={1}
+              value={nodeCount}
+              onChange={(e) => {
+                clearHover()
+                setNodeCount(Number(e.target.value))
+              }}
+            />
           </div>
         </div>
       </div>
