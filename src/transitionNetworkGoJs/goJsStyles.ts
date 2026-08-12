@@ -33,7 +33,7 @@ export const LINK_LABEL_MUTED = '#9aa3ab'
 
 // --- 圏外リンク色 ---
 /** 圏外リンク色 */
-export const EXTERNAL_LINK_STROKE = '#7eb6de'
+export const EXTERNAL_LINK_STROKE = '#9ed9ff'
 /** 圏外リンク（グレー） */
 export const EXTERNAL_LINK_STROKE_MUTED = '#6a737a'
 
@@ -43,11 +43,11 @@ export const NODE_WIDTH = 168
 /** ノード楕円の高さ */
 export const NODE_HEIGHT = 64
 
-/** 件数から線幅を求める（おおよそ 1.2〜4） */
+/** 件数に比例して線幅を求める（おおよそ 1.2〜12） */
 function linkStrokeWidthFromValue(value: number): number {
   const BASE_WIDTH = 1.2
-  const VALUE_SCALE = 400
-  const MAX_WIDTH = 4
+  const VALUE_SCALE = 110
+  const MAX_WIDTH = 12
   return Math.min(MAX_WIDTH, BASE_WIDTH + Math.abs(value) / VALUE_SCALE)
 }
 
@@ -135,7 +135,7 @@ export function buildLinkTemplate(handlers: GraphObjectHandlers): go.Link {
         toArrow: 'Standard',
         fill: LINK_STROKE,
         stroke: null,
-        scale: 1.2,
+        scale: 1.55,
       },
       new go.Binding('fill', 'muted', (muted: boolean) =>
         muted ? LINK_STROKE_MUTED : LINK_STROKE,
@@ -189,7 +189,7 @@ export function buildExternalLinkTemplate(
         toArrow: 'Standard',
         fill: EXTERNAL_LINK_STROKE,
         stroke: null,
-        scale: 1.1,
+        scale: 1.45,
       },
       new go.Binding('fill', 'muted', (muted: boolean) =>
         muted ? EXTERNAL_LINK_STROKE_MUTED : EXTERNAL_LINK_STROKE,

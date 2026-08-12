@@ -154,6 +154,10 @@ export function CytoscapePage() {
 
     // Cytoscape に渡す要素（ノード／エッジ）。見た目は cytoscapeStyles.ts。
     // 圏外矢印は「透明ゴーストノード + エッジ」で表現（エッジは両端ノード必須のため）。
+    const maxEdgeValue =
+      network.edges.length > 0
+        ? Math.max(...network.edges.map((edge) => edge.value))
+        : null
     const positions = ellipsePositions(network.nodes.length)
     const elements: cytoscape.ElementDefinition[] = [
       ...network.nodes.map((node, index) => ({
@@ -180,7 +184,7 @@ export function CytoscapePage() {
             id: `${edge.from}->${edge.to}`,
             source: edge.from,
             target: edge.to,
-            label: formatInt(edge.value),
+            label: edge.value === maxEdgeValue ? formatInt(edge.value) : '',
             value: edge.value,
             fromLabel,
             toLabel,

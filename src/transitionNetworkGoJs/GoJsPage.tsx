@@ -27,13 +27,9 @@ import {
   EXTERNAL_LINK_STROKE_MUTED,
   GOJS_DIAGRAM_BG,
   LINK_STROKE,
-  LINK_STROKE_HOVER,
   LINK_STROKE_MUTED,
-  LINK_STROKE_MUTED_HOVER,
   NODE_FILL,
-  NODE_FILL_HOVER,
   NODE_STROKE,
-  NODE_STROKE_HOVER,
 } from './goJsStyles'
 
 type TooltipState = {
@@ -51,6 +47,7 @@ type NodeModel = {
   after: number
   external: number
   loc: string
+  category?: string
 }
 
 type LinkModel = {
@@ -73,6 +70,8 @@ type LinkModel = {
 export function GoJsPage() {
   const hostRef = useRef<HTMLDivElement>(null)
   const diagramRef = useRef<go.Diagram | null>(null)
+  const flowTimerRef = useRef<number | null>(null)
+  const focusedNodeKeyRef = useRef<string | null>(null)
   /** グラフに渡すノード数（スライダー確定値） */
   const [nodeCount, setNodeCount] = useState(8)
   /** 流入/流出線をグレーにするしきい値（絶対値） */
@@ -91,6 +90,13 @@ export function GoJsPage() {
   // クロージャに古い setTooltip が残らないよう ref 経由にする。
   const setTooltipRef = useRef(setTooltip)
   setTooltipRef.current = setTooltip
+
+  const stopFlowAnimation = () => {
+    if (flowTimerRef.current != null) {
+      window.clearInterval(flowTimerRef.current)
+      flowTimerRef.current = null
+    }
+  }
 
   // --- API ---
   useEffect(() => {
@@ -131,6 +137,10 @@ export function GoJsPage() {
     if (!network) {
       return { nodes: [] as NodeModel[], links: [] as LinkModel[] }
     }
+    const maxEdgeValue =
+      network.edges.length > 0
+        ? Math.max(...network.edges.map((edge) => edge.value))
+        : null
     const positions = ellipsePositions(network.nodes.length)
     const external = buildExternalModels(
       network.nodes,
@@ -158,7 +168,7 @@ export function GoJsPage() {
             key: `${edge.from}->${edge.to}`,
             from: edge.from,
             to: edge.to,
-            label: formatInt(edge.value),
+            label: edge.value === maxEdgeValue ? formatInt(edge.value) : '',
             value: edge.value,
             fromLabel: nodeById.get(edge.from)?.label ?? edge.from,
             toLabel: nodeById.get(edge.to)?.label ?? edge.to,
@@ -172,6 +182,140 @@ export function GoJsPage() {
 
   useEffect(() => {
     if (!hostRef.current) return
+
+    const resetFocusStyles = (diagram: go.Diagram) => {
+      stopFlowAnimation()
+      diagram.nodes.each((node) => {
+        const data = node.data as NodeModel
+        if (data.category === 'ghost') return
+        const shape = node.findObject('SHAPE') as go.Shape | null
+        if (!shape) return
+        shape.fill = NODE_FILL
+        shape.stroke = NODE_STROKE
+        shape.strokeWidth = 1
+      })
+      diagram.links.each((link) => {
+        const data = link.data as LinkModel
+        const path = link.findObject('PATH') as go.Shape | null
+        const arrow = link.findObject('ARROW') as go.Shape | null
+        const baseStroke =
+          data.kind === 'external'
+            ? data.muted
+              ? EXTERNAL_LINK_STROKE_MUTED
+              : EXTERNAL_LINK_STROKE
+            : data.muted
+              ? LINK_STROKE_MUTED
+              : LINK_STROKE
+        if (path) {
+          path.stroke = baseStroke
+          path.opacity = data.muted ? 0.55 : 1
+          path.strokeDashArray = null
+          path.strokeDashOffset = 0
+        }
+        if (arrow) {
+          arrow.fill = baseStroke
+          arrow.opacity = data.muted ? 0.55 : 1
+        }
+      })
+    }
+
+    const applyFlowFocus = (diagram: go.Diagram, focusKey: string) => {
+      const focusNode = diagram.findNodeForKey(focusKey)
+      if (!focusNode) {
+        focusedNodeKeyRef.current = null
+        return
+      }
+      resetFocusStyles(diagram)
+      focusedNodeKeyRef.current = focusKey
+
+      const relatedNodeKeys = new Set<string>()
+      const incomingLinks: go.Link[] = []
+      const outgoingLinks: go.Link[] = []
+      const highlightedLinks: go.Link[] = []
+
+      diagram.links.each((link) => {
+        const from = String(link.data.from ?? '')
+        const to = String(link.data.to ?? '')
+        if (to === focusKey) {
+          incomingLinks.push(link)
+          highlightedLinks.push(link)
+          if (!from.startsWith('ext-ghost-')) relatedNodeKeys.add(from)
+        } else if (from === focusKey) {
+          outgoingLinks.push(link)
+          highlightedLinks.push(link)
+          if (!to.startsWith('ext-ghost-')) relatedNodeKeys.add(to)
+        }
+      })
+
+      diagram.nodes.each((node) => {
+        const data = node.data as NodeModel
+        if (data.category === 'ghost') return
+        const key = String(data.key)
+        const shape = node.findObject('SHAPE') as go.Shape | null
+        if (!shape) return
+
+        if (key === focusKey) {
+          shape.fill = data.after > data.before ? '#3f8d52' : '#b85656'
+          shape.stroke = '#f1d16f'
+          shape.strokeWidth = 6
+          return
+        }
+        if (relatedNodeKeys.has(key)) {
+          shape.fill = data.after > data.before ? '#3f8d52' : '#b85656'
+          shape.stroke = data.after > data.before ? '#9ad89a' : '#e6a3a3'
+          shape.strokeWidth = 2
+          return
+        }
+        shape.fill = '#6f7782'
+        shape.stroke = '#000000'
+        shape.strokeWidth = 6
+      })
+
+      const highlightedSet = new Set(highlightedLinks)
+      diagram.links.each((link) => {
+        if (highlightedSet.has(link)) return
+        const path = link.findObject('PATH') as go.Shape | null
+        const arrow = link.findObject('ARROW') as go.Shape | null
+        if (path) {
+          path.opacity = 0.18
+        }
+        if (arrow) {
+          arrow.opacity = 0.18
+        }
+      })
+
+      const styleFlowLinks = (links: go.Link[], color: string) => {
+        links.forEach((link) => {
+          const path = link.findObject('PATH') as go.Shape | null
+          const arrow = link.findObject('ARROW') as go.Shape | null
+          if (path) {
+            path.stroke = color
+            path.opacity = 0.95
+            path.strokeDashArray = [10, 7]
+            path.strokeDashOffset = 0
+          }
+          if (arrow) {
+            arrow.fill = color
+            arrow.opacity = 0.95
+          }
+        })
+      }
+      styleFlowLinks(incomingLinks, '#8ff5ab')
+      styleFlowLinks(outgoingLinks, '#ff8f8f')
+
+      let phase = 0
+      flowTimerRef.current = window.setInterval(() => {
+        phase += 2
+        incomingLinks.forEach((link) => {
+          const path = link.findObject('PATH') as go.Shape | null
+          if (path) path.strokeDashOffset = phase
+        })
+        outgoingLinks.forEach((link) => {
+          const path = link.findObject('PATH') as go.Shape | null
+          if (path) path.strokeDashOffset = -phase
+        })
+      }, 45)
+    }
 
     const showAtViewPoint = (
       viewPoint: go.Point,
@@ -208,24 +352,18 @@ export function GoJsPage() {
       // 形式: GraphObject プロパティ mouseEnter / mouseLeave
       //   - 第1引数 e … go.InputEvent
       //   - 第2引数 obj … イベント対象の GraphObject（part で Node/Link を取得）
-      //   - findObject('SHAPE'|'PATH') … 名前付き図形の fill/stroke を更新してハイライト
       //   - transformDocToView … ドキュメント座標 → ビュー座標（ホスト上の位置）
+      //   - 色のホバー変更／Leave 時の色戻しは行わない（クリック強調を維持するため）
       //
       // ツールチップ本体は React の state（画面上の .tn-tooltip）で描画する。
       // 位置はコンテナに対する % で渡し、CSS の absolute 配置に合わせる。
       // ------------------------------------------------------------
 
-      // ノード: ホバーで塗り／枠を強調し、KPI ツールチップを表示
+      // ノード: ホバーではツールチップのみ（色は変更しない）
       diagram.nodeTemplate = buildNodeTemplate({
         mouseEnter: (_e, obj) => {
           const node = obj.part as go.Node
           const data = node.data as NodeModel
-          const shape = node.findObject('SHAPE') as go.Shape | null
-          if (shape) {
-            shape.stroke = NODE_STROKE_HOVER
-            shape.strokeWidth = 2
-            shape.fill = NODE_FILL_HOVER
-          }
           const docPoint = node.getDocumentPoint(go.Spot.Top)
           const viewPoint = diagram.transformDocToView(docPoint)
           showAtViewPoint(
@@ -239,15 +377,7 @@ export function GoJsPage() {
             }),
           )
         },
-        // ノードからマウス離脱: 通常色に戻し、ツールチップを消す
-        mouseLeave: (_e, obj) => {
-          const node = obj.part as go.Node
-          const shape = node.findObject('SHAPE') as go.Shape | null
-          if (shape) {
-            shape.stroke = NODE_STROKE
-            shape.strokeWidth = 1
-            shape.fill = NODE_FILL
-          }
+        mouseLeave: () => {
           setTooltipRef.current(null)
         },
       })
@@ -257,18 +387,6 @@ export function GoJsPage() {
         mouseEnter: (_e: go.InputEvent, obj: go.GraphObject) => {
           const link = obj.part as go.Link
           const data = link.data as LinkModel
-          const path = link.findObject('PATH') as go.Shape | null
-          if (path) {
-            path.stroke = data.muted
-              ? LINK_STROKE_MUTED_HOVER
-              : LINK_STROKE_HOVER
-          }
-          const arrow = link.findObject('ARROW') as go.Shape | null
-          if (arrow) {
-            arrow.fill = data.muted
-              ? LINK_STROKE_MUTED_HOVER
-              : LINK_STROKE_HOVER
-          }
           const fromNode = link.fromNode
           const toNode = link.toNode
           if (!fromNode || !toNode) return
@@ -288,21 +406,7 @@ export function GoJsPage() {
               : edgeTooltipContent(data.fromLabel, data.toLabel, data.value)
           showAtViewPoint(viewPoint, tip)
         },
-        mouseLeave: (_e: go.InputEvent, obj: go.GraphObject) => {
-          const link = obj.part as go.Link
-          const data = link.data as LinkModel
-          const path = link.findObject('PATH') as go.Shape | null
-          const arrow = link.findObject('ARROW') as go.Shape | null
-          const baseStroke =
-            data.kind === 'external'
-              ? data.muted
-                ? EXTERNAL_LINK_STROKE_MUTED
-                : EXTERNAL_LINK_STROKE
-              : data.muted
-                ? LINK_STROKE_MUTED
-                : LINK_STROKE
-          if (path) path.stroke = baseStroke
-          if (arrow) arrow.fill = baseStroke
+        mouseLeave: () => {
           setTooltipRef.current(null)
         },
       }
@@ -319,22 +423,44 @@ export function GoJsPage() {
         linkDataArray: modelData.links,
       })
 
+      diagram.addDiagramListener('ObjectSingleClicked', (evt) => {
+        const part = evt.subject.part
+        if (!(part instanceof go.Node)) return
+        const data = part.data as NodeModel
+        if (data.category === 'ghost') return
+        applyFlowFocus(diagram, String(data.key))
+      })
+
+      diagram.addDiagramListener('BackgroundSingleClicked', () => {
+        focusedNodeKeyRef.current = null
+        resetFocusStyles(diagram)
+      })
+
       diagramRef.current = diagram
       diagram.commandHandler.zoomToFit()
     } else {
       // 2回目以降: インスタンスは再利用し、モデルだけ差し替える
       const diagram = diagramRef.current
+      const keepScale = diagram.scale
+      const keepPos = diagram.position.copy()
       setTooltip(null)
       diagram.model = new go.GraphLinksModel({
         nodeDataArray: modelData.nodes,
         linkDataArray: modelData.links,
       })
-      diagram.commandHandler.zoomToFit()
+      diagram.scale = keepScale
+      diagram.position = keepPos
+      if (focusedNodeKeyRef.current) {
+        applyFlowFocus(diagram, focusedNodeKeyRef.current)
+      } else {
+        resetFocusStyles(diagram)
+      }
     }
   }, [modelData])
 
   useEffect(() => {
     return () => {
+      stopFlowAnimation()
       diagramRef.current?.div && (diagramRef.current.div = null)
       diagramRef.current = null
     }
