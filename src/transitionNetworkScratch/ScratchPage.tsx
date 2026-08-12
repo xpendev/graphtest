@@ -42,8 +42,7 @@ export function ScratchPage() {
   } | null>(null)
 
   const [tooltip, setTooltip] = useState<TooltipState | null>(null)
-  const [hoverEdgeKey, setHoverEdgeKey] = useState<string | null>(null)
-  const [hoverNodeId, setHoverNodeId] = useState<string | null>(null)
+  const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null)
 
   // --- API → Helpers（座標付き） ---
   useEffect(() => {
@@ -55,10 +54,14 @@ export function ScratchPage() {
       .then((next) => {
         if (cancelled) return
         setNetwork(next)
+        setFocusedNodeId((prev) =>
+          prev && next.nodes.some((node) => node.id === prev) ? prev : null,
+        )
       })
       .catch((error: unknown) => {
         if (cancelled) return
         setNetwork(null)
+        setFocusedNodeId(null)
         setMessage(
           error instanceof Error
             ? error.message
@@ -83,10 +86,8 @@ export function ScratchPage() {
     [network, nodes],
   )
 
-  const clearHover = () => {
+  const clearTooltip = () => {
     setTooltip(null)
-    setHoverEdgeKey(null)
-    setHoverNodeId(null)
   }
 
   const getSvg = () => {
@@ -225,7 +226,7 @@ export function ScratchPage() {
                 step={1}
                 value={edgeMinAbs}
                 onChange={(e) => {
-                  clearHover()
+                  clearTooltip()
                   setEdgeMinAbs(Number(e.target.value))
                 }}
               />
@@ -241,17 +242,10 @@ export function ScratchPage() {
               nodes={nodes}
               edges={edges}
               edgeMinAbs={edgeMinAbs}
+              focusedNodeId={focusedNodeId}
               tooltip={tooltip}
-              hoverEdgeKey={hoverEdgeKey}
-              hoverNodeId={hoverNodeId}
-              onHoverEdge={(key, nextTooltip) => {
-                setHoverEdgeKey(key)
-                setTooltip(nextTooltip)
-              }}
-              onHoverNode={(id, nextTooltip) => {
-                setHoverNodeId(id)
-                setTooltip(nextTooltip)
-              }}
+              onFocusNode={setFocusedNodeId}
+              onTooltip={setTooltip}
             />
           ) : (
             <div className="tn-graph-placeholder" role="status">
@@ -272,7 +266,7 @@ export function ScratchPage() {
               step={1}
               value={nodeCount}
               onChange={(e) => {
-                clearHover()
+                clearTooltip()
                 setNodeCount(Number(e.target.value))
               }}
             />

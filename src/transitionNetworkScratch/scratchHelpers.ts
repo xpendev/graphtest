@@ -1,9 +1,9 @@
 import type { ScratchEdge, ScratchNode } from './scratchData'
 
-/** SVG viewBox 幅（紙の横サイズ） */
-export const VIEW_W = 1200
+/** SVG viewBox 幅（紙の横サイズ。半径 900 に合わせて拡大） */
+export const VIEW_W = 2200
 /** SVG viewBox 高さ（紙の縦サイズ） */
-export const VIEW_H = 560
+export const VIEW_H = 960
 /** グラフ中心 X（ノード配置・圏外矢印の基準） */
 export const CX = VIEW_W / 2
 /** グラフ中心 Y */
@@ -18,10 +18,10 @@ export const EDGE_MIN_DEFAULT = 50
 /** 流入/流出線の表示最小値スライダー上限 */
 export const EDGE_MIN_MAX = 1000
 
-/** ノードを並べる大きな楕円軌道の横半径 */
-const RADIUS_X = 430
-/** ノードを並べる大きな楕円軌道の縦半径 */
-const RADIUS_Y = 195
+/** ノードを並べる大きな楕円軌道の横半径（Cytoscape / GoJS と同じ） */
+const RADIUS_X = 900
+/** ノードを並べる大きな楕円軌道の縦半径（Cytoscape / GoJS と同じ） */
+const RADIUS_Y = 350
 
 /** 件数ラベルを線から少しずらす距離（px） */
 const EDGE_LABEL_OFFSET = 12
