@@ -14,9 +14,9 @@ const CX = 600
 /** 楕円配置の中心 Y */
 const CY = 280
 /** ノードを並べる大きな楕円軌道の横半径 */
-const RADIUS_X = 430
+const RADIUS_X = 900
 /** ノードを並べる大きな楕円軌道の縦半径 */
-const RADIUS_Y = 195
+const RADIUS_Y = 350
 
 /** ノード楕円サイズ（cytoscapeStyles と揃える） */
 const NODE_W = 168

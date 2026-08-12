@@ -1,10 +1,10 @@
 import type { EdgeSingular } from 'cytoscape'
 
-/** 件数から線幅を求める（極少〜極多でおおよそ 1〜8） */
+/** 件数に比例して線幅を求める（極少〜極多でおおよそ 1.2〜12） */
 function edgeWidthFromValue(value: number, hoverBoost = 0): number {
-  const magnitude = Math.sqrt(Math.abs(value))
-  const base = (hoverBoost > 0 ? 1.4 : 0.9) + magnitude / 6
-  const cap = hoverBoost > 0 ? 9 : 8
+  const magnitude = Math.abs(value)
+  const base = (hoverBoost > 0 ? 1.6 : 1.2) + magnitude / 110
+  const cap = hoverBoost > 0 ? 14 : 12
   return Math.min(cap, base)
 }
 
@@ -49,6 +49,52 @@ export const cytoscapeStyles = [
     },
   },
   {
+    // クリック選択ノード
+    selector: 'node.focus',
+    style: {
+      'border-width': 6,
+      'border-color': '#f1d16f',
+      'background-color': '#4f96bd',
+    },
+  },
+  {
+    // 選択ノードと関連するノード
+    selector: 'node.related',
+    style: {
+      'border-width': 2,
+      'border-color': '#8fd48d',
+      'background-color': '#3f8d52',
+    },
+  },
+  {
+    // 当期が前期より増加したノード（クリック時）
+    selector: 'node.up',
+    style: {
+      'border-width': 2,
+      'border-color': '#9ad89a',
+      'background-color': '#3f8d52',
+    },
+  },
+  {
+    // 当期が前期以下のノード（クリック時）
+    selector: 'node.down',
+    style: {
+      'border-width': 2,
+      'border-color': '#e6a3a3',
+      'background-color': '#b85656',
+    },
+  },
+  {
+    // 非関連ノードは弱く表示
+    selector: 'node.faded',
+    style: {
+      'border-width': 6,
+      'border-color': '#000000',
+      'background-color': '#6f7782',
+      opacity: 1,
+    },
+  },
+  {
     // --- 通常の遷移線 ---
     selector: 'edge',
     style: {
@@ -57,6 +103,7 @@ export const cytoscapeStyles = [
       'line-color': '#5b9fd4',
       'target-arrow-color': '#5b9fd4',
       'target-arrow-shape': 'triangle' as const,
+      'arrow-scale': 1.55,
       'curve-style': 'bezier' as const,
       label: 'data(label)',
       color: '#e8eef3',
@@ -71,12 +118,13 @@ export const cytoscapeStyles = [
     selector: 'edge.external',
     style: {
       width: 1.4,
-      'line-color': '#7eb6de',
-      'target-arrow-color': '#7eb6de',
+      'line-color': '#9ed9ff',
+      'target-arrow-color': '#9ed9ff',
       'target-arrow-shape': 'triangle' as const,
+      'arrow-scale': 1.45,
       'curve-style': 'straight' as const,
       label: 'data(label)',
-      color: '#d7e6f2',
+      color: '#e7f4ff',
       'font-size': '11px',
       'text-background-color': '#1a1f24',
       'text-background-opacity': 0.7,
@@ -88,8 +136,44 @@ export const cytoscapeStyles = [
     style: {
       'line-color': '#9fd0ef',
       'target-arrow-color': '#9fd0ef',
+      'arrow-scale': 1.7,
       width: (ele: EdgeSingular) =>
         edgeWidthFromValue(Number(ele.data('value')), 1),
+    },
+  },
+  {
+    // クリックノードへ流入する線
+    selector: 'edge.flow-in',
+    style: {
+      'line-color': '#8ff5ab',
+      'target-arrow-color': '#8ff5ab',
+      'arrow-scale': 1.7,
+      'line-style': 'dashed',
+      'line-dash-pattern': [10, 7],
+      'line-dash-offset': (ele: EdgeSingular) =>
+        Number(ele.data('flowPhase') ?? 0),
+      opacity: 0.95,
+    },
+  },
+  {
+    // クリックノードから流出する線
+    selector: 'edge.flow-out',
+    style: {
+      'line-color': '#ff8f8f',
+      'target-arrow-color': '#ff8f8f',
+      'arrow-scale': 1.7,
+      'line-style': 'dashed',
+      'line-dash-pattern': [10, 7],
+      'line-dash-offset': (ele: EdgeSingular) =>
+        Number(ele.data('flowPhase') ?? 0),
+      opacity: 0.95,
+    },
+  },
+  {
+    // 非関連エッジは弱く表示
+    selector: 'edge.faded',
+    style: {
+      opacity: 0.18,
     },
   },
   {
@@ -98,6 +182,7 @@ export const cytoscapeStyles = [
       width: 2.2,
       'line-color': '#9fd0ef',
       'target-arrow-color': '#9fd0ef',
+      'arrow-scale': 1.6,
     },
   },
   {
@@ -123,6 +208,14 @@ export const cytoscapeStyles = [
     style: {
       'border-width': 2,
       'border-color': '#c5e6f8',
+    },
+  },
+  {
+    // up/down/related と同時付与されても選択枠を優先する
+    selector: 'node.focus.up, node.focus.down, node.focus.related',
+    style: {
+      'border-width': 6,
+      'border-color': '#f1d16f',
     },
   },
 ]

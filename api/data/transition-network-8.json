@@ -69,28 +69,8 @@
       "value": 420
     },
     {
-      "from": "other",
-      "to": "cat-b",
-      "value": 280
-    },
-    {
-      "from": "other",
-      "to": "cat-c",
-      "value": 173
-    },
-    {
-      "from": "other",
-      "to": "cat-d",
-      "value": 204
-    },
-    {
-      "from": "other",
-      "to": "cat-e",
-      "value": 320
-    },
-    {
-      "from": "other",
-      "to": "cat-f",
+      "from": "cat-f",
+      "to": "other",
       "value": 266
     },
     {

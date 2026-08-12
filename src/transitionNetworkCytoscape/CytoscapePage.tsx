@@ -52,6 +52,8 @@ export function CytoscapePage() {
   // クロージャに古い setTooltip が残らないよう ref 経由にする。
   const setTooltipRef = useRef(setTooltip)
   setTooltipRef.current = setTooltip
+  const flowTimerRef = useRef<number | null>(null)
+  const focusedNodeIdRef = useRef<string | null>(null)
 
   // --- API ---
   useEffect(() => {
@@ -87,6 +89,66 @@ export function CytoscapePage() {
     [network],
   )
 
+  const stopFlowAnimation = () => {
+    if (flowTimerRef.current != null) {
+      window.clearInterval(flowTimerRef.current)
+      flowTimerRef.current = null
+    }
+  }
+
+  const clearFlowFocus = (cy: Core) => {
+    stopFlowAnimation()
+    cy.nodes().removeClass('focus related faded up down')
+    cy.edges().removeClass('flow-in flow-out faded')
+    cy.edges().forEach((edge) => {
+      edge.removeData('flowPhase')
+    })
+  }
+
+  const applyFlowFocus = (cy: Core, nodeId: string) => {
+    const target = cy.getElementById(nodeId)
+    if (!target || target.empty()) {
+      focusedNodeIdRef.current = null
+      return
+    }
+
+    clearFlowFocus(cy)
+    focusedNodeIdRef.current = nodeId
+
+    const incoming = target.incomers('edge')
+    const outgoing = target.outgoers('edge')
+    const relatedNodes = incoming.sources().union(outgoing.targets()).difference(target)
+    const activeNodes = target.union(relatedNodes)
+
+    target.addClass('focus')
+    relatedNodes.addClass('related')
+    activeNodes.forEach((node: cytoscape.NodeSingular) => {
+      const before = Number(node.data('before') ?? 0)
+      const after = Number(node.data('after') ?? 0)
+      node.addClass(after > before ? 'up' : 'down')
+    })
+
+    const highlightedEdges = incoming.union(outgoing)
+    const fadedNodes = cy.nodes().difference(activeNodes)
+    const fadedEdges = cy.edges().difference(highlightedEdges)
+    fadedNodes.addClass('faded')
+    fadedEdges.addClass('faded')
+
+    incoming.addClass('flow-in')
+    outgoing.addClass('flow-out')
+
+    let phase = 0
+    flowTimerRef.current = window.setInterval(() => {
+      phase += 2
+      incoming.forEach((edge: cytoscape.EdgeSingular) => {
+        edge.data('flowPhase', phase)
+      })
+      outgoing.forEach((edge: cytoscape.EdgeSingular) => {
+        edge.data('flowPhase', -phase)
+      })
+    }, 45)
+  }
+
   useEffect(() => {
     if (!hostRef.current || !network) return
 
@@ -112,7 +174,8 @@ export function CytoscapePage() {
         const muted = isGrayEdge(edge, edgeMinAbs)
         return {
           group: 'edges' as const,
-          classes: muted ? 'muted' : undefined,
+          // muted 解除時にクラス残留しないよう、常にクラス文字列を明示する
+          classes: muted ? 'muted' : '',
           data: {
             id: `${edge.from}->${edge.to}`,
             source: edge.from,
@@ -233,18 +296,41 @@ export function CytoscapePage() {
         evt.target.removeClass('hover')
         setTooltipRef.current(null)
       })
+
+      // ノードクリック: 関連ノード・関連エッジを強調し、
+      // 流入/流出方向ごとに流れる矢印アニメーションを再生する。
+      cy.on('tap', 'node', (evt) => {
+        applyFlowFocus(cy, String(evt.target.id()))
+      })
+
+      // 背景クリックで強調解除
+      cy.on('tap', (evt) => {
+        if (evt.target === cy) {
+          clearFlowFocus(cy)
+          focusedNodeIdRef.current = null
+        }
+      })
     } else {
       // 2回目以降: インスタンスは再利用し、データだけ差し替える
       const cy = cyRef.current
+      const currentZoom = cy.zoom()
+      const currentPan = cy.pan()
       setTooltip(null)
+      clearFlowFocus(cy)
       cy.json({ elements })
       cy.layout({ name: 'preset' }).run()
-      cy.fit(undefined, 40)
+      // 閾値スライダー変更時に表示位置が戻らないよう、現在のビューを維持する。
+      cy.zoom(currentZoom)
+      cy.pan(currentPan)
+      if (focusedNodeIdRef.current) {
+        applyFlowFocus(cy, focusedNodeIdRef.current)
+      }
     }
   }, [network, nodeById, edgeMinAbs])
 
   useEffect(() => {
     return () => {
+      stopFlowAnimation()
       cyRef.current?.destroy()
       cyRef.current = null
     }
