@@ -19,7 +19,7 @@ npm run dev
 | URL | 内容 |
 | --- | --- |
 | `/` | トップ（実装へのリンクのみ） |
-| `/transition-network` | スクラッチ（React + SVG） |
+| `/transition-network` | スクラッチ |
 | `/transition-network/cytoscape` | Cytoscape.js（無料） |
 | `/transition-network/gojs` | GoJS（評価版・有償） |
 | `/transition-network/agcharts` | AG Charts Chord（Enterprise） |

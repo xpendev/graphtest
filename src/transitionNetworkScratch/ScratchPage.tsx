@@ -142,7 +142,7 @@ export function ScratchPage() {
         <div>
           <p className="tn-page-eyebrow">検証用スパイク</p>
           <h1 className="tn-page-title">曼荼羅チャート</h1>
-          <p className="tn-page-subtitle">スクラッチ（React + SVG）</p>
+          <p className="tn-page-subtitle">スクラッチ</p>
         </div>
         <div className="tn-page-actions">
           <Link className="tn-page-link" to="/">

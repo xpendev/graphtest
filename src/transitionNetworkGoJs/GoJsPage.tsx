@@ -80,7 +80,6 @@ export function GoJsPage() {
   const [message, setMessage] = useState<string | null>(null)
   const [isDownloading, setIsDownloading] = useState(false)
   const [isCopying, setIsCopying] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
   const [network, setNetwork] = useState<{
     nodes: GoJsNetworkNode[]
     edges: GoJsNetworkEdge[]
@@ -101,7 +100,6 @@ export function GoJsPage() {
   // --- API ---
   useEffect(() => {
     let cancelled = false
-    setIsLoading(true)
     setMessage(null)
 
     void fetchGoJsNetwork(nodeCount)
@@ -117,9 +115,6 @@ export function GoJsPage() {
             ? error.message
             : '曼荼羅チャートの取得に失敗しました。',
         )
-      })
-      .finally(() => {
-        if (!cancelled) setIsLoading(false)
       })
 
     return () => {
@@ -182,6 +177,8 @@ export function GoJsPage() {
 
   useEffect(() => {
     if (!hostRef.current) return
+    // 空モデルで作ると zoomToFit 後のビューが壊れ、後続データでも真っ黒になる
+    if (modelData.nodes.length === 0) return
 
     const resetFocusStyles = (diagram: go.Diagram) => {
       stopFlowAnimation()
@@ -337,9 +334,11 @@ export function GoJsPage() {
         'animationManager.isEnabled': false,
         allowCopy: false,
         allowDelete: false,
+        allowMove: false, // ノードのドラッグ移動を禁止（背景パンは可）
         padding: 40,
         contentAlignment: go.Spot.Center,
       })
+      diagram.div!.style.backgroundColor = GOJS_DIAGRAM_BG
 
       // ------------------------------------------------------------
       // インタラクション（ホバー／ツールチップ）
@@ -437,19 +436,29 @@ export function GoJsPage() {
       })
 
       diagramRef.current = diagram
-      diagram.commandHandler.zoomToFit()
+      // レイアウト確定後にフィット（即時 zoomToFit だと寸法未確定で外れることがある）
+      requestAnimationFrame(() => {
+        diagram.commandHandler.zoomToFit()
+      })
     } else {
       // 2回目以降: インスタンスは再利用し、モデルだけ差し替える
       const diagram = diagramRef.current
       const keepScale = diagram.scale
       const keepPos = diagram.position.copy()
+      const hadNodes = diagram.nodes.count > 0
       setTooltip(null)
       diagram.model = new go.GraphLinksModel({
         nodeDataArray: modelData.nodes,
         linkDataArray: modelData.links,
       })
-      diagram.scale = keepScale
-      diagram.position = keepPos
+      if (hadNodes) {
+        diagram.scale = keepScale
+        diagram.position = keepPos
+      } else {
+        requestAnimationFrame(() => {
+          diagram.commandHandler.zoomToFit()
+        })
+      }
       if (focusedNodeKeyRef.current) {
         applyFlowFocus(diagram, focusedNodeKeyRef.current)
       } else {
@@ -541,10 +550,6 @@ export function GoJsPage() {
         <div>
           <p className="tn-page-eyebrow">ライブラリ検証</p>
           <h1 className="tn-page-title">曼荼羅チャート — GoJS</h1>
-          <p className="tn-page-subtitle">
-            商用ダイアグラムライブラリ GoJS（評価版）による実装です。ノード／リンクを
-            テンプレート＋データバインドで定義します。ウォーターマークが出ることがあります。
-          </p>
         </div>
         <div className="tn-page-actions">
           <Link className="tn-page-link" to="/">
@@ -638,11 +643,6 @@ export function GoJsPage() {
           </div>
 
           <div className="tn-graph-area">
-            <div className="tn-lib-badge">
-              {isLoading
-                ? 'データを読み込み中…'
-                : 'GoJS（評価版・有償製品）'}
-            </div>
             <div ref={hostRef} className="tn-lib-canvas-host" />
             {tooltip ? (
               <div

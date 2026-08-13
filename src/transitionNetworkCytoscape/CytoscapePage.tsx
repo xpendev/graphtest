@@ -42,7 +42,6 @@ export function CytoscapePage() {
   const [message, setMessage] = useState<string | null>(null)
   const [isDownloading, setIsDownloading] = useState(false)
   const [isCopying, setIsCopying] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
   const [network, setNetwork] = useState<{
     nodes: CytoscapeNetworkNode[]
     edges: CytoscapeNetworkEdge[]
@@ -58,7 +57,6 @@ export function CytoscapePage() {
   // --- API ---
   useEffect(() => {
     let cancelled = false
-    setIsLoading(true)
     setMessage(null)
 
     void fetchCytoscapeNetwork(nodeCount)
@@ -74,9 +72,6 @@ export function CytoscapePage() {
             ? error.message
             : '曼荼羅チャートの取得に失敗しました。',
         )
-      })
-      .finally(() => {
-        if (!cancelled) setIsLoading(false)
       })
 
     return () => {
@@ -204,10 +199,10 @@ export function CytoscapePage() {
         userZoomingEnabled: true,
         userPanningEnabled: true,
         boxSelectionEnabled: false,
+        autoungrabify: true, // ノードのドラッグ移動を禁止（背景パンは可）
       })
       cyRef.current = cy
       cy.fit(undefined, 40)
-
       // ------------------------------------------------------------
       // インタラクション（ホバー／ツールチップ）
       //
@@ -412,10 +407,6 @@ export function CytoscapePage() {
         <div>
           <p className="tn-page-eyebrow">ライブラリ検証</p>
           <h1 className="tn-page-title">曼荼羅チャート — Cytoscape.js</h1>
-          <p className="tn-page-subtitle">
-            無料のグラフ可視化ライブラリ Cytoscape.js による実装です。生 SVG
-            手書きではなく、ノード／エッジをデータとして渡します。
-          </p>
         </div>
         <div className="tn-page-actions">
           <Link className="tn-page-link" to="/">
@@ -509,11 +500,6 @@ export function CytoscapePage() {
           </div>
 
           <div className="tn-graph-area">
-            <div className="tn-lib-badge">
-              {isLoading
-                ? 'データを読み込み中…'
-                : 'Cytoscape.js（無料）'}
-            </div>
             <div ref={hostRef} className="tn-lib-canvas-host" />
             {tooltip ? (
               <div
