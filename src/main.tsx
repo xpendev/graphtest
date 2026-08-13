@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import './index.css'
+import { BrandDivergingBPage } from './brandDivergingAgCharts/BrandDivergingBPage.tsx'
 import { HomePage } from './HomePage.tsx'
 import { ScratchPage } from './transitionNetworkScratch/ScratchPage.tsx'
 import { CytoscapePage } from './transitionNetworkCytoscape/CytoscapePage.tsx'
@@ -22,6 +23,11 @@ createRoot(document.getElementById('root')!).render(
         <Route
           path="/transition-network/agcharts"
           element={<AgChartsPage />}
+        />
+        <Route path="/brand-diverging" element={<BrandDivergingBPage />} />
+        <Route
+          path="/brand-diverging-b"
+          element={<Navigate to="/brand-diverging" replace />}
         />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

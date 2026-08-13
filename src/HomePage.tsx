@@ -21,6 +21,11 @@ const links = [
     title: 'AG Charts Chord',
     note: 'Enterprise・カテゴリ間流出入（圏外なし・最大30）',
   },
+  {
+    to: '/brand-diverging',
+    title: '流出入差ランキング',
+    note: '曼荼羅代替・純増減（流入−流出）＋ホバー内訳',
+  },
 ] as const
 
 export function HomePage() {
