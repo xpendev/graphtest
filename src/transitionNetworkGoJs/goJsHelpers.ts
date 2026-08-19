@@ -17,12 +17,10 @@ const CY = 280
 const RADIUS_X = 900
 /** ノードを並べる大きな楕円軌道の縦半径 */
 const RADIUS_Y = 350
-/** ノード楕円サイズ（goJsStyles と揃える） */
-const NODE_W = 168
+/** ノード楕円の高さ（goJsStyles と揃える） */
 const NODE_H = 64
-/** 圏外矢印の先端をノード縁から外へ伸ばす距離 */
-const EXTERNAL_TIP_GAP_X = 36
-const EXTERNAL_TIP_GAP_Y = 28
+/** 圏外矢印の先端をノード上下縁から外へ伸ばす距離 */
+const EXTERNAL_TIP_GAP = 28
 
 /** 数値を日本ロケールのカンマ区切りにする */
 export function formatInt(n: number): string {
@@ -105,13 +103,10 @@ export function buildExternalModels(
     if (node.external === 0) return
 
     const center = positions[index]
-    // グラフ中心からノードへ向かう向き＝圏外矢印の向き
-    const outwardAngle = Math.atan2(center.y - CY, center.x - CX)
-    const tipDistanceX = NODE_W / 2 + EXTERNAL_TIP_GAP_X
-    const tipDistanceY = NODE_H / 2 + EXTERNAL_TIP_GAP_Y
+    const outward = center.y < CY ? -1 : 1
     const tip = {
-      x: center.x + Math.cos(outwardAngle) * tipDistanceX,
-      y: center.y + Math.sin(outwardAngle) * tipDistanceY,
+      x: center.x,
+      y: center.y + outward * (NODE_H / 2 + EXTERNAL_TIP_GAP),
     }
     const ghostId = `ext-ghost-${node.id}`
     const isInflow = node.external > 0

@@ -25,10 +25,8 @@ const RADIUS_Y = 350
 
 /** 件数ラベルを線から少しずらす距離（px） */
 const EDGE_LABEL_OFFSET = 12
-/** 圏外矢印の先端をノード縁から外へ伸ばす距離（横方向めやす） */
-const EXTERNAL_TIP_GAP_X = 36
-/** 圏外矢印の先端をノード縁から外へ伸ばす距離（縦方向めやす） */
-const EXTERNAL_TIP_GAP_Y = 28
+/** 圏外矢印の先端をノード上下縁から外へ伸ばす距離 */
+const EXTERNAL_TIP_GAP = 28
 /** 圏外件数ラベルを先端からさらに外へずらす距離 */
 const EXTERNAL_LABEL_GAP = 14
 
@@ -170,27 +168,20 @@ function buildEdgeGeometry(fromCenter: Point, toCenter: Point): LaidOutEdge['geo
 
 /**
  * 圏外流入／流出矢印の始終点とラベル位置を返す。
- * external < 0 … ノードから外へ流出 / >= 0 … 外からノードへ流入
+ * 上半分はノード真上、下半分は真下。流入はノードへ、流出は外へ（垂直）。
  */
 export function externalArrow(
   center: Point,
   external: number,
 ): { lineStart: Point; lineEnd: Point; label: Point } {
-  // グラフ中心からノードへ向かう向き＝圏外矢印の向き
-  const outwardAngle = angleBetween({ x: CX, y: CY }, center)
-  const isOutflow = external < 0
+  const outward = center.y < CY ? -1 : 1
+  const edgeY = center.y + outward * (NODE_H / 2)
+  const tipY = edgeY + outward * EXTERNAL_TIP_GAP
+  const baseOnNodeEdge = { x: center.x, y: edgeY }
+  const tip = { x: center.x, y: tipY }
+  const label = { x: center.x, y: tipY + outward * EXTERNAL_LABEL_GAP }
 
-  const tip = {
-    x: center.x + Math.cos(outwardAngle) * (NODE_W / 2 + EXTERNAL_TIP_GAP_X),
-    y: center.y + Math.sin(outwardAngle) * (NODE_H / 2 + EXTERNAL_TIP_GAP_Y),
-  }
-  const baseOnNodeEdge = ellipseEdgePoint(center, outwardAngle)
-  const label = {
-    x: tip.x + Math.cos(outwardAngle) * EXTERNAL_LABEL_GAP,
-    y: tip.y + Math.sin(outwardAngle) * EXTERNAL_LABEL_GAP,
-  }
-
-  if (isOutflow) {
+  if (external < 0) {
     return { lineStart: baseOnNodeEdge, lineEnd: tip, label }
   }
   return { lineStart: tip, lineEnd: baseOnNodeEdge, label }
