@@ -1,4 +1,4 @@
-import type { EdgeSingular } from 'cytoscape'
+import type { EdgeSingular, NodeSingular } from 'cytoscape'
 
 /** 件数に比例して線幅を求める（極少〜極多でおおよそ 1.2〜12） */
 function edgeWidthFromValue(value: number, hoverBoost = 0): number {
@@ -31,13 +31,61 @@ export const cytoscapeStyles = [
   },
   {
     // 圏外矢印の外側端点（透明。エッジの接続先としてだけ使う）
-    selector: 'node.external-ghost',
+    selector: 'node.external-arrow',
     style: {
-      width: 1,
-      height: 1,
-      opacity: 0,
-      label: '',
-      events: 'no' as const,
+      shape: 'polygon' as const,
+      'shape-polygon-points': 'data(poly)',
+      width: 48,
+      height: 34,
+      'background-color': '#7ec8f0',
+      'border-width': 0,
+      label: 'data(label)',
+      color: '#e7f4ff',
+      'font-size': '11px',
+      'text-wrap': 'none' as const,
+      'text-max-width': '80px',
+      'text-halign': 'center' as const,
+      'text-valign': (ele: NodeSingular) =>
+        ele.data('side') === 'up' ? 'top' : 'bottom',
+      'text-margin-y': (ele: NodeSingular) =>
+        ele.data('side') === 'up' ? -10 : 10,
+    },
+  },
+  {
+    selector: 'node.external-arrow.muted',
+    style: {
+      'background-color': '#6a737a',
+      color: '#9aa3ab',
+      opacity: 0.55,
+    },
+  },
+  {
+    selector: 'node.external-arrow.hover',
+    style: {
+      'background-color': '#9fd0ef',
+      'border-width': 0,
+    },
+  },
+  {
+    selector: 'node.external-arrow.flow-in',
+    style: {
+      'background-color': '#8ff5ab',
+      opacity: 0.95,
+    },
+  },
+  {
+    selector: 'node.external-arrow.flow-out',
+    style: {
+      'background-color': '#ff8f8f',
+      opacity: 0.95,
+    },
+  },
+  {
+    selector: 'node.external-arrow.faded',
+    style: {
+      'border-width': 0,
+      'background-color': '#7ec8f0',
+      opacity: 0.18,
     },
   },
   {
@@ -114,24 +162,6 @@ export const cytoscapeStyles = [
     },
   },
   {
-    // Scratch の圏外矢印に近い見た目
-    selector: 'edge.external',
-    style: {
-      width: 1.4,
-      'line-color': '#9ed9ff',
-      'target-arrow-color': '#9ed9ff',
-      'target-arrow-shape': 'triangle' as const,
-      'arrow-scale': 1.45,
-      'curve-style': 'straight' as const,
-      label: 'data(label)',
-      color: '#e7f4ff',
-      'font-size': '11px',
-      'text-background-color': '#1a1f24',
-      'text-background-opacity': 0.7,
-      'text-background-padding': '2px',
-    },
-  },
-  {
     selector: 'edge.hover',
     style: {
       'line-color': '#9fd0ef',
@@ -174,15 +204,6 @@ export const cytoscapeStyles = [
     selector: 'edge.faded',
     style: {
       opacity: 0.18,
-    },
-  },
-  {
-    selector: 'edge.external.hover',
-    style: {
-      width: 2.2,
-      'line-color': '#9fd0ef',
-      'target-arrow-color': '#9fd0ef',
-      'arrow-scale': 1.6,
     },
   },
   {

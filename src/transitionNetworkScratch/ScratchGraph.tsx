@@ -35,7 +35,7 @@ function edgeStrokeWidth(value: number): number {
 type ArrowMarkerProps = {
   id: string
   fill: string
-  /** 通常矢印 7 / 圏外矢印 6 */
+  /** 通常遷移矢印のサイズ */
   size: number
 }
 
@@ -174,26 +174,6 @@ export function ScratchGraph({
             fill={scratchStyles.arrowFlowOutFill}
             size={7}
           />
-          <ArrowMarker
-            id="tn-arrow-ext"
-            fill={scratchStyles.arrowExtMarkerFill}
-            size={6}
-          />
-          <ArrowMarker
-            id="tn-arrow-ext-muted"
-            fill={scratchStyles.arrowMarkerMutedFill}
-            size={6}
-          />
-          <ArrowMarker
-            id="tn-arrow-ext-flow-in"
-            fill={scratchStyles.arrowFlowInFill}
-            size={6}
-          />
-          <ArrowMarker
-            id="tn-arrow-ext-flow-out"
-            fill={scratchStyles.arrowFlowOutFill}
-            size={6}
-          />
           <linearGradient id="tn-node-fill" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={scratchStyles.nodeGradient.start} />
             <stop offset="100%" stopColor={scratchStyles.nodeGradient.end} />
@@ -214,7 +194,7 @@ export function ScratchGraph({
           const role = edgeRole(edgeKey)
           const baseWidth = edgeStrokeWidth(edge.value)
 
-          let strokeColor = isMuted
+          let strokeColor: string = isMuted
             ? scratchStyles.edgeStrokeMuted
             : scratchStyles.edgeStroke
           let markerEnd = isMuted ? 'url(#tn-arrow-muted)' : 'url(#tn-arrow)'
@@ -315,7 +295,7 @@ export function ScratchGraph({
               : `圏外への流出: ${formatInt(Math.abs(node.external))}`
 
           let fill: string = 'url(#tn-node-fill)'
-          let stroke = scratchStyles.nodeStroke
+          let stroke: string = scratchStyles.nodeStroke
           let strokeWidth = 1
 
           if (role === 'focus') {
@@ -340,29 +320,18 @@ export function ScratchGraph({
 
           const isFocusExternal =
             focusedNodeId === node.id && focusInfo.externalFlow != null
-          let extStroke = isExternalMuted
+          let extFill: string = isExternalMuted
             ? scratchStyles.externalStrokeMuted
             : scratchStyles.externalStroke
-          let extMarker = isExternalMuted
-            ? 'url(#tn-arrow-ext-muted)'
-            : 'url(#tn-arrow-ext)'
           let extOpacity = isExternalMuted ? 0.55 : 1
-          let extDash: string | undefined
-          let extDashOffset = 0
 
           if (isFocusExternal) {
             if (focusInfo.externalFlow === 'in') {
-              extStroke = scratchStyles.edgeFlowIn
-              extMarker = 'url(#tn-arrow-ext-flow-in)'
+              extFill = scratchStyles.edgeFlowIn
               extOpacity = 0.95
-              extDash = '10 7'
-              extDashOffset = flowPhase
             } else {
-              extStroke = scratchStyles.edgeFlowOut
-              extMarker = 'url(#tn-arrow-ext-flow-out)'
+              extFill = scratchStyles.edgeFlowOut
               extOpacity = 0.95
-              extDash = '10 7'
-              extDashOffset = -flowPhase
             }
           } else if (focusedNodeId && focusedNodeId !== node.id) {
             extOpacity = 0.18
@@ -372,16 +341,9 @@ export function ScratchGraph({
             <g key={node.id}>
               {hasExternal ? (
                 <g opacity={extOpacity}>
-                  <line
-                    x1={externalGeom.lineStart.x}
-                    y1={externalGeom.lineStart.y}
-                    x2={externalGeom.lineEnd.x}
-                    y2={externalGeom.lineEnd.y}
-                    stroke={extStroke}
-                    strokeWidth={1.4}
-                    strokeDasharray={extDash}
-                    strokeDashoffset={extDashOffset}
-                    markerEnd={extMarker}
+                  <polygon
+                    points={externalGeom.points}
+                    fill={extFill}
                     pointerEvents="none"
                   />
                   <text

@@ -33,7 +33,7 @@ export const LINK_LABEL_MUTED = '#9aa3ab'
 
 // --- 圏外リンク色 ---
 /** 圏外リンク色 */
-export const EXTERNAL_LINK_STROKE = '#9ed9ff'
+export const EXTERNAL_LINK_STROKE = '#7ec8f0'
 /** 圏外リンク（グレー） */
 export const EXTERNAL_LINK_STROKE_MUTED = '#6a737a'
 
@@ -49,6 +49,17 @@ function linkStrokeWidthFromValue(value: number): number {
   const VALUE_SCALE = 110
   const MAX_WIDTH = 12
   return Math.min(MAX_WIDTH, BASE_WIDTH + Math.abs(value) / VALUE_SCALE)
+}
+
+/** 線幅に埋もれないよう、矢じりを線より一回り大きくする */
+function arrowScaleFromValue(value: number): number {
+  const width = linkStrokeWidthFromValue(value)
+  return Math.max(1.55, width * 0.42)
+}
+
+/** 太い線でも三角がノードに埋まらないよう、先端を少し短くする */
+function toShortLengthFromValue(value: number): number {
+  return Math.max(4, linkStrokeWidthFromValue(value) * 1.6)
 }
 
 type GraphObjectHandlers = {
@@ -93,6 +104,7 @@ export function buildNodeTemplate(handlers: GraphObjectHandlers): go.Node {
 export function buildGhostNodeTemplate(): go.Node {
   return $(
     go.Node,
+    'Spot',
     {
       locationSpot: go.Spot.Center,
       selectable: false,
@@ -105,6 +117,17 @@ export function buildGhostNodeTemplate(): go.Node {
       fill: null,
       stroke: null,
     }),
+    $(
+      go.TextBlock,
+      {
+        font: '11px sans-serif',
+        stroke: LINK_LABEL,
+      },
+      new go.Binding('text', 'extLabel'),
+      new go.Binding('alignment', 'side', (side: 'up' | 'down') =>
+        side === 'up' ? go.Spot.Top : go.Spot.Bottom,
+      ),
+    ),
   )
 }
 
@@ -119,6 +142,7 @@ export function buildLinkTemplate(handlers: GraphObjectHandlers): go.Link {
       mouseEnter: handlers.mouseEnter,
       mouseLeave: handlers.mouseLeave,
     },
+    new go.Binding('toShortLength', 'value', toShortLengthFromValue),
     $(
       go.Shape,
       { name: 'PATH', stroke: LINK_STROKE, strokeWidth: 1.5 },
@@ -137,6 +161,7 @@ export function buildLinkTemplate(handlers: GraphObjectHandlers): go.Link {
         stroke: null,
         scale: 1.55,
       },
+      new go.Binding('scale', 'value', arrowScaleFromValue),
       new go.Binding('fill', 'muted', (muted: boolean) =>
         muted ? LINK_STROKE_MUTED : LINK_STROKE,
       ),
@@ -157,6 +182,10 @@ export function buildLinkTemplate(handlers: GraphObjectHandlers): go.Link {
   )
 }
 
+/** 前身システムに近い、短い太い塗り矢印 */
+const EXTERNAL_STROKE_WIDTH = 10
+const EXTERNAL_ARROW_SCALE = 3
+
 /** 圏外リンクテンプレート（Scratch の圏外矢印に近い見た目） */
 export function buildExternalLinkTemplate(
   handlers: GraphObjectHandlers,
@@ -167,6 +196,7 @@ export function buildExternalLinkTemplate(
       routing: go.Routing.Normal,
       curve: go.Curve.None,
       selectable: false,
+      toShortLength: 18,
       mouseEnter: handlers.mouseEnter,
       mouseLeave: handlers.mouseLeave,
     },
@@ -175,7 +205,7 @@ export function buildExternalLinkTemplate(
       {
         name: 'PATH',
         stroke: EXTERNAL_LINK_STROKE,
-        strokeWidth: 1.4,
+        strokeWidth: EXTERNAL_STROKE_WIDTH,
       },
       new go.Binding('stroke', 'muted', (muted: boolean) =>
         muted ? EXTERNAL_LINK_STROKE_MUTED : EXTERNAL_LINK_STROKE,
@@ -189,7 +219,7 @@ export function buildExternalLinkTemplate(
         toArrow: 'Standard',
         fill: EXTERNAL_LINK_STROKE,
         stroke: null,
-        scale: 1.45,
+        scale: EXTERNAL_ARROW_SCALE,
       },
       new go.Binding('fill', 'muted', (muted: boolean) =>
         muted ? EXTERNAL_LINK_STROKE_MUTED : EXTERNAL_LINK_STROKE,

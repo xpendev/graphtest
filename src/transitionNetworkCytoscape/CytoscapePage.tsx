@@ -93,7 +93,7 @@ export function CytoscapePage() {
 
   const clearFlowFocus = (cy: Core) => {
     stopFlowAnimation()
-    cy.nodes().removeClass('focus related faded up down')
+    cy.nodes().removeClass('focus related faded up down flow-in flow-out')
     cy.edges().removeClass('flow-in flow-out faded')
     cy.edges().forEach((edge) => {
       edge.removeData('flowPhase')
@@ -124,13 +124,22 @@ export function CytoscapePage() {
     })
 
     const highlightedEdges = incoming.union(outgoing)
-    const fadedNodes = cy.nodes().difference(activeNodes)
+    const arrowNodes = cy.nodes('.external-arrow')
+    const fadedNodes = cy.nodes().difference(activeNodes).difference(arrowNodes)
     const fadedEdges = cy.edges().difference(highlightedEdges)
     fadedNodes.addClass('faded')
     fadedEdges.addClass('faded')
 
     incoming.addClass('flow-in')
     outgoing.addClass('flow-out')
+
+    arrowNodes.forEach((arrow: cytoscape.NodeSingular) => {
+      if (String(arrow.data('hostId')) === nodeId) {
+        arrow.addClass(String(arrow.data('dir')) === 'in' ? 'flow-in' : 'flow-out')
+      } else {
+        arrow.addClass('faded')
+      }
+    })
 
     let phase = 0
     flowTimerRef.current = window.setInterval(() => {
@@ -148,7 +157,7 @@ export function CytoscapePage() {
     if (!hostRef.current || !network) return
 
     // Cytoscape に渡す要素（ノード／エッジ）。見た目は cytoscapeStyles.ts。
-    // 圏外矢印は「透明ゴーストノード + エッジ」で表現（エッジは両端ノード必須のため）。
+    // 圏外矢印はスクラッチと同じ塗り多角形ノード。
     const maxEdgeValue =
       network.edges.length > 0
         ? Math.max(...network.edges.map((edge) => edge.value))
@@ -226,11 +235,21 @@ export function CytoscapePage() {
         const container = cy.container()
         if (!container) return
 
-        // cytoscapeStyles の selector: 'node.hover' に対応
         ele.addClass('hover')
 
-        // 画面上の描画座標（ズーム／パン後の位置）
         const pos = ele.renderedPosition()
+        if (ele.hasClass('external-arrow')) {
+          const fromLabel = String(ele.data('fromLabel') ?? '')
+          const toLabel = String(ele.data('toLabel') ?? '')
+          setTooltipRef.current({
+            xPct: (pos.x / container.clientWidth) * 100,
+            yPct: (pos.y / container.clientHeight) * 100,
+            title: fromLabel === '圏外' ? `→${toLabel}` : `${fromLabel}→`,
+            lines: [`件数: ${formatInt(Number(ele.data('value') ?? 0))}`],
+          })
+          return
+        }
+
         const tip = nodeTooltipContent({
           id: String(ele.id()),
           label: String(ele.data('name') ?? ''),
@@ -264,24 +283,13 @@ export function CytoscapePage() {
 
         const sourcePos = ele.source().renderedPosition()
         const targetPos = ele.target().renderedPosition()
-        const kind = String(ele.data('kind') ?? '')
         const fromLabel = String(ele.data('fromLabel') ?? '')
         const toLabel = String(ele.data('toLabel') ?? '')
-        const tip =
-          kind === 'external'
-            ? {
-                // 圏外側の文字は出さず、実ノード側だけ残す（→XXX / XXX→）
-                title:
-                  fromLabel === '圏外' ? `→${toLabel}` : `${fromLabel}→`,
-                lines: [
-                  `件数: ${formatInt(Number(ele.data('value') ?? 0))}`,
-                ],
-              }
-            : edgeTooltipContent(
-                fromLabel,
-                toLabel,
-                Number(ele.data('value') ?? 0),
-              )
+        const tip = edgeTooltipContent(
+          fromLabel,
+          toLabel,
+          Number(ele.data('value') ?? 0),
+        )
         setTooltipRef.current({
           xPct: ((sourcePos.x + targetPos.x) / 2 / container.clientWidth) * 100,
           yPct: ((sourcePos.y + targetPos.y) / 2 / container.clientHeight) * 100,
@@ -299,7 +307,12 @@ export function CytoscapePage() {
       // ノードクリック: 関連ノード・関連エッジを強調し、
       // 流入/流出方向ごとに流れる矢印アニメーションを再生する。
       cy.on('tap', 'node', (evt) => {
-        applyFlowFocus(cy, String(evt.target.id()))
+        const ele = evt.target
+        if (ele.hasClass('external-arrow')) {
+          applyFlowFocus(cy, String(ele.data('hostId') ?? ''))
+          return
+        }
+        applyFlowFocus(cy, String(ele.id()))
       })
 
       // 背景クリックで強調解除
