@@ -300,16 +300,19 @@ export function GoJsPage() {
       styleFlowLinks(incomingLinks, '#8ff5ab')
       styleFlowLinks(outgoingLinks, '#ff8f8f')
 
+      // GoJS の strokeDashOffset は 0 以上のみ。負数は無視されるため、
+      // 流出は周期を折り返して逆方向に見せる。
+      const dashPeriod = 10 + 7
       let phase = 0
       flowTimerRef.current = window.setInterval(() => {
-        phase += 2
+        phase = (phase + 2) % dashPeriod
         incomingLinks.forEach((link) => {
           const path = link.findObject('PATH') as go.Shape | null
           if (path) path.strokeDashOffset = phase
         })
         outgoingLinks.forEach((link) => {
           const path = link.findObject('PATH') as go.Shape | null
-          if (path) path.strokeDashOffset = -phase
+          if (path) path.strokeDashOffset = (dashPeriod - phase) % dashPeriod
         })
       }, 45)
     }
