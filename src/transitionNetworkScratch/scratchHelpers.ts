@@ -25,14 +25,10 @@ const RADIUS_Y = 350
 
 /** 件数ラベルを線から少しずらす距離（px） */
 const EDGE_LABEL_OFFSET = 12
-/** 前身システムに近い、短い太い塗り矢印（ノード幅の約 1/4） */
-const EXTERNAL_HEAD_W = 48
-const EXTERNAL_HEAD_H = 24
-const EXTERNAL_STEM_W = 12
-const EXTERNAL_STEM_H = 10
-/** ノード縁と矢印のすきま（三角が楕円に埋まらないようにする） */
-const EXTERNAL_NODE_GAP = 6
-const EXTERNAL_LABEL_GAP = 16
+/** 圏外矢印の先端をノード上下縁から外へ伸ばす距離 */
+const EXTERNAL_TIP_GAP = 28
+/** 圏外件数ラベルを先端からさらに外へずらす距離 */
+const EXTERNAL_LABEL_GAP = 14
 
 /** 2D 座標 */
 export type Point = { x: number; y: number }
@@ -171,46 +167,24 @@ function buildEdgeGeometry(fromCenter: Point, toCenter: Point): LaidOutEdge['geo
 }
 
 /**
- * 圏外の短い塗り矢印（前身システムの形）。
- * 上半分は真上、下半分は真下。流入はノード向き、流出は外向き。
+ * 圏外流入／流出矢印の始終点とラベル位置を返す。
+ * 上半分はノード真上、下半分は真下。流入はノードへ、流出は外へ（垂直）。
  */
 export function externalArrow(
   center: Point,
   external: number,
-): { points: string; label: Point } {
+): { lineStart: Point; lineEnd: Point; label: Point } {
   const outward = center.y < CY ? -1 : 1
-  const isOutflow = external < 0
-  const x = center.x
-  const y0 = center.y + outward * (NODE_H / 2 + EXTERNAL_NODE_GAP)
-  const hw = EXTERNAL_HEAD_W / 2
-  const sw = EXTERNAL_STEM_W / 2
-  const o = outward
+  const edgeY = center.y + outward * (NODE_H / 2)
+  const tipY = edgeY + outward * EXTERNAL_TIP_GAP
+  const baseOnNodeEdge = { x: center.x, y: edgeY }
+  const tip = { x: center.x, y: tipY }
+  const label = { x: center.x, y: tipY + outward * EXTERNAL_LABEL_GAP }
 
-  const pts: [number, number][] = isOutflow
-    ? [
-        [x - sw, y0],
-        [x + sw, y0],
-        [x + sw, y0 + o * EXTERNAL_STEM_H],
-        [x + hw, y0 + o * EXTERNAL_STEM_H],
-        [x, y0 + o * (EXTERNAL_STEM_H + EXTERNAL_HEAD_H)],
-        [x - hw, y0 + o * EXTERNAL_STEM_H],
-        [x - sw, y0 + o * EXTERNAL_STEM_H],
-      ]
-    : [
-        [x, y0],
-        [x + hw, y0 + o * EXTERNAL_HEAD_H],
-        [x + sw, y0 + o * EXTERNAL_HEAD_H],
-        [x + sw, y0 + o * (EXTERNAL_HEAD_H + EXTERNAL_STEM_H)],
-        [x - sw, y0 + o * (EXTERNAL_HEAD_H + EXTERNAL_STEM_H)],
-        [x - sw, y0 + o * EXTERNAL_HEAD_H],
-        [x - hw, y0 + o * EXTERNAL_HEAD_H],
-      ]
-
-  const outerY = y0 + o * (EXTERNAL_STEM_H + EXTERNAL_HEAD_H)
-  return {
-    points: pts.map(([px, py]) => `${px},${py}`).join(' '),
-    label: { x, y: outerY + o * EXTERNAL_LABEL_GAP },
+  if (external < 0) {
+    return { lineStart: baseOnNodeEdge, lineEnd: tip, label }
   }
+  return { lineStart: tip, lineEnd: baseOnNodeEdge, label }
 }
 
 /** ノードに center を付けた LaidOutNode 一覧を返す（描画はしない） */

@@ -33,7 +33,7 @@ export const LINK_LABEL_MUTED = '#9aa3ab'
 
 // --- 圏外リンク色 ---
 /** 圏外リンク色 */
-export const EXTERNAL_LINK_STROKE = '#7ec8f0'
+export const EXTERNAL_LINK_STROKE = '#9ed9ff'
 /** 圏外リンク（グレー） */
 export const EXTERNAL_LINK_STROKE_MUTED = '#6a737a'
 
@@ -104,7 +104,6 @@ export function buildNodeTemplate(handlers: GraphObjectHandlers): go.Node {
 export function buildGhostNodeTemplate(): go.Node {
   return $(
     go.Node,
-    'Spot',
     {
       locationSpot: go.Spot.Center,
       selectable: false,
@@ -117,17 +116,6 @@ export function buildGhostNodeTemplate(): go.Node {
       fill: null,
       stroke: null,
     }),
-    $(
-      go.TextBlock,
-      {
-        font: '11px sans-serif',
-        stroke: LINK_LABEL,
-      },
-      new go.Binding('text', 'extLabel'),
-      new go.Binding('alignment', 'side', (side: 'up' | 'down') =>
-        side === 'up' ? go.Spot.Top : go.Spot.Bottom,
-      ),
-    ),
   )
 }
 
@@ -182,11 +170,7 @@ export function buildLinkTemplate(handlers: GraphObjectHandlers): go.Link {
   )
 }
 
-/** 前身システムに近い、短い太い塗り矢印 */
-const EXTERNAL_STROKE_WIDTH = 10
-const EXTERNAL_ARROW_SCALE = 3
-
-/** 圏外リンクテンプレート（Scratch の圏外矢印に近い見た目） */
+/** 圏外リンクテンプレート（短い細い直線＋標準矢じり） */
 export function buildExternalLinkTemplate(
   handlers: GraphObjectHandlers,
 ): go.Link {
@@ -196,7 +180,6 @@ export function buildExternalLinkTemplate(
       routing: go.Routing.Normal,
       curve: go.Curve.None,
       selectable: false,
-      toShortLength: 18,
       mouseEnter: handlers.mouseEnter,
       mouseLeave: handlers.mouseLeave,
     },
@@ -205,7 +188,7 @@ export function buildExternalLinkTemplate(
       {
         name: 'PATH',
         stroke: EXTERNAL_LINK_STROKE,
-        strokeWidth: EXTERNAL_STROKE_WIDTH,
+        strokeWidth: 1.4,
       },
       new go.Binding('stroke', 'muted', (muted: boolean) =>
         muted ? EXTERNAL_LINK_STROKE_MUTED : EXTERNAL_LINK_STROKE,
@@ -219,7 +202,7 @@ export function buildExternalLinkTemplate(
         toArrow: 'Standard',
         fill: EXTERNAL_LINK_STROKE,
         stroke: null,
-        scale: EXTERNAL_ARROW_SCALE,
+        scale: 1.45,
       },
       new go.Binding('fill', 'muted', (muted: boolean) =>
         muted ? EXTERNAL_LINK_STROKE_MUTED : EXTERNAL_LINK_STROKE,

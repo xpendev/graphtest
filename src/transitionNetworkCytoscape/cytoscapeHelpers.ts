@@ -20,15 +20,8 @@ const RADIUS_Y = 350
 
 /** ノード楕円の高さ（cytoscapeStyles と揃える） */
 const NODE_H = 64
-/** スクラッチと同じ短い塗り矢印 */
-const EXTERNAL_ARROW_H = 34
-const EXTERNAL_NODE_GAP = 6
-/** y=-1 が上。軸が下・三角が上（流出・上半分など） */
-const POLY_ARROW_UP =
-  '0 -1 1 -0.18 0.25 -0.18 0.25 1 -0.25 1 -0.25 -0.18 -1 -0.18'
-/** 三角が下（流入・上半分など） */
-const POLY_ARROW_DOWN =
-  '0 1 1 0.18 0.25 0.18 0.25 -1 -0.25 -1 -0.25 0.18 -1 0.18'
+/** 圏外矢印の先端をノード上下縁から外へ伸ばす距離 */
+const EXTERNAL_TIP_GAP = 28
 
 /**
  * ノードを楕円状に等間隔配置した座標一覧を返す。
@@ -88,7 +81,9 @@ type CyElement = {
 }
 
 /**
- * 圏外の短い塗り矢印ノードを返す（スクラッチと同じ形）。
+ * 圏外矢印用の要素（透明ゴーストノード + エッジ）を返す。
+ * Cytoscape のエッジは必ず source/target ノードが必要なため、
+ * Scratch の「何もないところからの線」はゴーストノードで代用する。
  */
 export function buildExternalElements(
   nodes: CytoscapeNetworkNode[],
@@ -102,32 +97,35 @@ export function buildExternalElements(
 
     const center = positions[index]
     const outward = center.y < CY ? -1 : 1
+    const tip = {
+      x: center.x,
+      y: center.y + outward * (NODE_H / 2 + EXTERNAL_TIP_GAP),
+    }
+    const ghostId = `ext-ghost-${node.id}`
     const isInflow = node.external > 0
-    const isOutflow = !isInflow
     const isMuted = Math.abs(node.external) < edgeMinAbs
-    const side = outward < 0 ? 'up' : 'down'
-    const pointsUp = (outward < 0) === isOutflow
-    const y0 = center.y + outward * (NODE_H / 2 + EXTERNAL_NODE_GAP)
-    const arrowCenterY = y0 + outward * (EXTERNAL_ARROW_H / 2)
 
     elements.push({
       group: 'nodes',
-      classes: isMuted ? 'external-arrow muted' : 'external-arrow',
+      classes: 'external-ghost',
+      data: { id: ghostId, label: '' },
+      position: tip,
+      selectable: false,
+      grabbable: false,
+    })
+    elements.push({
+      group: 'edges',
+      classes: isMuted ? 'external muted' : 'external',
       data: {
-        id: `ext-arrow-${node.id}`,
-        hostId: node.id,
-        kind: 'external-arrow',
+        id: `ext-${node.id}`,
+        source: isInflow ? ghostId : node.id,
+        target: isInflow ? node.id : ghostId,
         label: formatInt(node.external),
-        side,
-        dir: isInflow ? 'in' : 'out',
-        poly: pointsUp ? POLY_ARROW_UP : POLY_ARROW_DOWN,
         value: node.external,
         fromLabel: isInflow ? '圏外' : node.label,
         toLabel: isInflow ? node.label : '圏外',
+        kind: 'external',
       },
-      position: { x: center.x, y: arrowCenterY },
-      selectable: false,
-      grabbable: false,
     })
   })
 

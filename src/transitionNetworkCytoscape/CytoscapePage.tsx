@@ -112,7 +112,12 @@ export function CytoscapePage() {
 
     const incoming = target.incomers('edge')
     const outgoing = target.outgoers('edge')
-    const relatedNodes = incoming.sources().union(outgoing.targets()).difference(target)
+    const ghostNodes = cy.nodes('.external-ghost')
+    const relatedNodes = incoming
+      .sources()
+      .union(outgoing.targets())
+      .difference(target)
+      .difference(ghostNodes)
     const activeNodes = target.union(relatedNodes)
 
     target.addClass('focus')
@@ -124,22 +129,13 @@ export function CytoscapePage() {
     })
 
     const highlightedEdges = incoming.union(outgoing)
-    const arrowNodes = cy.nodes('.external-arrow')
-    const fadedNodes = cy.nodes().difference(activeNodes).difference(arrowNodes)
+    const fadedNodes = cy.nodes().difference(activeNodes).difference(ghostNodes)
     const fadedEdges = cy.edges().difference(highlightedEdges)
     fadedNodes.addClass('faded')
     fadedEdges.addClass('faded')
 
     incoming.addClass('flow-in')
     outgoing.addClass('flow-out')
-
-    arrowNodes.forEach((arrow: cytoscape.NodeSingular) => {
-      if (String(arrow.data('hostId')) === nodeId) {
-        arrow.addClass(String(arrow.data('dir')) === 'in' ? 'flow-in' : 'flow-out')
-      } else {
-        arrow.addClass('faded')
-      }
-    })
 
     let phase = 0
     flowTimerRef.current = window.setInterval(() => {
@@ -157,7 +153,7 @@ export function CytoscapePage() {
     if (!hostRef.current || !network) return
 
     // Cytoscape に渡す要素（ノード／エッジ）。見た目は cytoscapeStyles.ts。
-    // 圏外矢印はスクラッチと同じ塗り多角形ノード。
+    // 圏外は透明ゴースト＋短い直線エッジ。
     const maxEdgeValue =
       network.edges.length > 0
         ? Math.max(...network.edges.map((edge) => edge.value))
@@ -238,18 +234,6 @@ export function CytoscapePage() {
         ele.addClass('hover')
 
         const pos = ele.renderedPosition()
-        if (ele.hasClass('external-arrow')) {
-          const fromLabel = String(ele.data('fromLabel') ?? '')
-          const toLabel = String(ele.data('toLabel') ?? '')
-          setTooltipRef.current({
-            xPct: (pos.x / container.clientWidth) * 100,
-            yPct: (pos.y / container.clientHeight) * 100,
-            title: fromLabel === '圏外' ? `→${toLabel}` : `${fromLabel}→`,
-            lines: [`件数: ${formatInt(Number(ele.data('value') ?? 0))}`],
-          })
-          return
-        }
-
         const tip = nodeTooltipContent({
           id: String(ele.id()),
           label: String(ele.data('name') ?? ''),
@@ -285,11 +269,18 @@ export function CytoscapePage() {
         const targetPos = ele.target().renderedPosition()
         const fromLabel = String(ele.data('fromLabel') ?? '')
         const toLabel = String(ele.data('toLabel') ?? '')
-        const tip = edgeTooltipContent(
-          fromLabel,
-          toLabel,
-          Number(ele.data('value') ?? 0),
-        )
+        const kind = String(ele.data('kind') ?? '')
+        const tip =
+          kind === 'external'
+            ? {
+                title: fromLabel === '圏外' ? `→${toLabel}` : `${fromLabel}→`,
+                lines: [`件数: ${formatInt(Number(ele.data('value') ?? 0))}`],
+              }
+            : edgeTooltipContent(
+                fromLabel,
+                toLabel,
+                Number(ele.data('value') ?? 0),
+              )
         setTooltipRef.current({
           xPct: ((sourcePos.x + targetPos.x) / 2 / container.clientWidth) * 100,
           yPct: ((sourcePos.y + targetPos.y) / 2 / container.clientHeight) * 100,
@@ -307,12 +298,7 @@ export function CytoscapePage() {
       // ノードクリック: 関連ノード・関連エッジを強調し、
       // 流入/流出方向ごとに流れる矢印アニメーションを再生する。
       cy.on('tap', 'node', (evt) => {
-        const ele = evt.target
-        if (ele.hasClass('external-arrow')) {
-          applyFlowFocus(cy, String(ele.data('hostId') ?? ''))
-          return
-        }
-        applyFlowFocus(cy, String(ele.id()))
+        applyFlowFocus(cy, String(evt.target.id()))
       })
 
       // 背景クリックで強調解除

@@ -19,8 +19,8 @@ const RADIUS_X = 900
 const RADIUS_Y = 350
 /** ノード楕円の高さ（goJsStyles と揃える） */
 const NODE_H = 64
-/** 短い太い圏外矢印の長さ（軸＋矢じり） */
-const EXTERNAL_TIP_GAP = 40
+/** 圏外矢印の先端をノード上下縁から外へ伸ばす距離 */
+const EXTERNAL_TIP_GAP = 28
 
 /** 数値を日本ロケールのカンマ区切りにする */
 export function formatInt(n: number): string {
@@ -70,13 +70,7 @@ export function ellipsePositions(count: number): { x: number; y: number }[] {
   })
 }
 
-type GhostModel = {
-  key: string
-  category: string
-  loc: string
-  extLabel: string
-  side: 'up' | 'down'
-}
+type GhostModel = { key: string; category: string; loc: string }
 type ExternalLinkModel = {
   key: string
   category: string
@@ -122,15 +116,13 @@ export function buildExternalModels(
       key: ghostId,
       category: 'ghost',
       loc: `${tip.x} ${tip.y}`,
-      extLabel: formatInt(node.external),
-      side: outward < 0 ? 'up' : 'down',
     })
     links.push({
       key: `ext-${node.id}`,
       category: 'external',
       from: isInflow ? ghostId : node.id,
       to: isInflow ? node.id : ghostId,
-      label: '',
+      label: formatInt(node.external),
       value: node.external,
       fromLabel: isInflow ? '圏外' : node.label,
       toLabel: isInflow ? node.label : '圏外',

@@ -5,6 +5,7 @@ export const scratchStyles = {
 
   // --- 矢じり ---
   arrowMarkerFill: '#5b9fd4',
+  arrowExtMarkerFill: '#7eb6de',
   arrowMarkerMutedFill: '#6a737a',
   arrowFlowInFill: '#8ff5ab',
   arrowFlowOutFill: '#ff8f8f',
@@ -37,7 +38,7 @@ export const scratchStyles = {
   edgeFlowOut: '#ff8f8f',
 
   // --- 圏外矢印 ---
-  externalStroke: '#7ec8f0',
+  externalStroke: '#7eb6de',
   externalStrokeMuted: '#6a737a',
   externalLabelFill: '#d7e6f2',
   externalLabelFillMuted: '#9aa3ab',
