@@ -116,11 +116,13 @@ export const cytoscapeStyles = [
   {
     selector: 'edge.external',
     style: {
-      width: 1.4,
+      // GoJS と同様に幹を太くしつつ、矢羽は短辺を食いつぶさないサイズにする
+      width: 10,
       'line-color': '#9ed9ff',
       'target-arrow-color': '#9ed9ff',
       'target-arrow-shape': 'triangle' as const,
-      'arrow-scale': 1.45,
+      'arrow-scale': 1.7,
+      'target-distance-from-node': 2,
       'curve-style': 'straight' as const,
       label: 'data(label)',
       color: '#e7f4ff',
@@ -180,10 +182,10 @@ export const cytoscapeStyles = [
   {
     selector: 'edge.external.hover',
     style: {
-      width: 2.2,
+      width: 11.5,
       'line-color': '#9fd0ef',
       'target-arrow-color': '#9fd0ef',
-      'arrow-scale': 1.6,
+      'arrow-scale': 1.85,
     },
   },
   {

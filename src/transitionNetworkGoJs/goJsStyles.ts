@@ -170,7 +170,7 @@ export function buildLinkTemplate(handlers: GraphObjectHandlers): go.Link {
   )
 }
 
-/** 圏外リンクテンプレート（短い細い直線＋標準矢じり） */
+/** 圏外リンクテンプレート（短い直線＋標準矢じり） */
 export function buildExternalLinkTemplate(
   handlers: GraphObjectHandlers,
 ): go.Link {
@@ -180,6 +180,8 @@ export function buildExternalLinkTemplate(
       routing: go.Routing.Normal,
       curve: go.Curve.None,
       selectable: false,
+      // 太い線でも矢羽が幹と一体化して見えるよう、先端を少し短くする
+      toShortLength: 16,
       mouseEnter: handlers.mouseEnter,
       mouseLeave: handlers.mouseLeave,
     },
@@ -188,7 +190,7 @@ export function buildExternalLinkTemplate(
       {
         name: 'PATH',
         stroke: EXTERNAL_LINK_STROKE,
-        strokeWidth: 1.4,
+        strokeWidth: 10,
       },
       new go.Binding('stroke', 'muted', (muted: boolean) =>
         muted ? EXTERNAL_LINK_STROKE_MUTED : EXTERNAL_LINK_STROKE,
@@ -202,7 +204,7 @@ export function buildExternalLinkTemplate(
         toArrow: 'Standard',
         fill: EXTERNAL_LINK_STROKE,
         stroke: null,
-        scale: 1.45,
+        scale: 5,
       },
       new go.Binding('fill', 'muted', (muted: boolean) =>
         muted ? EXTERNAL_LINK_STROKE_MUTED : EXTERNAL_LINK_STROKE,

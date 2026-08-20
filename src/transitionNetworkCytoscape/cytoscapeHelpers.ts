@@ -20,8 +20,8 @@ const RADIUS_Y = 350
 
 /** ノード楕円の高さ（cytoscapeStyles と揃える） */
 const NODE_H = 64
-/** 圏外矢印の先端をノード上下縁から外へ伸ばす距離 */
-const EXTERNAL_TIP_GAP = 28
+/** 圏外矢印の先端をノード上下縁から外へ伸ばす距離（幹が見える長さ） */
+const EXTERNAL_TIP_GAP = 72
 
 /**
  * ノードを楕円状に等間隔配置した座標一覧を返す。

@@ -387,7 +387,7 @@ export function ScratchGraph({
                     x2={externalGeom.lineEnd.x}
                     y2={externalGeom.lineEnd.y}
                     stroke={extStroke}
-                    strokeWidth={1.4}
+                    strokeWidth={6}
                     // [アニメーション] 圏外の破線を描いて動かす。再開時にコメントを外す。
                     // strokeDasharray={extDash}
                     // strokeDashoffset={extDashOffset}

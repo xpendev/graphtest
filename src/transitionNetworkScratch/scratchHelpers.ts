@@ -26,7 +26,7 @@ const RADIUS_Y = 350
 /** 件数ラベルを線から少しずらす距離（px） */
 const EDGE_LABEL_OFFSET = 12
 /** 圏外矢印の先端をノード上下縁から外へ伸ばす距離 */
-const EXTERNAL_TIP_GAP = 28
+const EXTERNAL_TIP_GAP = 40
 /** 圏外件数ラベルを先端からさらに外へずらす距離 */
 const EXTERNAL_LABEL_GAP = 14
 

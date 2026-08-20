@@ -20,7 +20,7 @@ const RADIUS_Y = 350
 /** ノード楕円の高さ（goJsStyles と揃える） */
 const NODE_H = 64
 /** 圏外矢印の先端をノード上下縁から外へ伸ばす距離 */
-const EXTERNAL_TIP_GAP = 28
+const EXTERNAL_TIP_GAP = 56
 
 /** 数値を日本ロケールのカンマ区切りにする */
 export function formatInt(n: number): string {
