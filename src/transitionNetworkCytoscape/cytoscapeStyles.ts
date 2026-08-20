@@ -147,10 +147,11 @@ export const cytoscapeStyles = [
       'line-color': '#8ff5ab',
       'target-arrow-color': '#8ff5ab',
       'arrow-scale': 1.7,
-      'line-style': 'dashed',
-      'line-dash-pattern': [10, 7],
-      'line-dash-offset': (ele: EdgeSingular) =>
-        Number(ele.data('flowPhase') ?? 0),
+      // [アニメーション] 流入の破線を動かして流れを見せる。再開時にコメントを外す。
+      // 'line-style': 'dashed',
+      // 'line-dash-pattern': [10, 7],
+      // 'line-dash-offset': (ele: EdgeSingular) =>
+      //   Number(ele.data('flowPhase') ?? 0),
       opacity: 0.95,
     },
   },
@@ -161,10 +162,11 @@ export const cytoscapeStyles = [
       'line-color': '#ff8f8f',
       'target-arrow-color': '#ff8f8f',
       'arrow-scale': 1.7,
-      'line-style': 'dashed',
-      'line-dash-pattern': [10, 7],
-      'line-dash-offset': (ele: EdgeSingular) =>
-        Number(ele.data('flowPhase') ?? 0),
+      // [アニメーション] 流出の破線を動かして流れを見せる。再開時にコメントを外す。
+      // 'line-style': 'dashed',
+      // 'line-dash-pattern': [10, 7],
+      // 'line-dash-offset': (ele: EdgeSingular) =>
+      //   Number(ele.data('flowPhase') ?? 0),
       opacity: 0.95,
     },
   },

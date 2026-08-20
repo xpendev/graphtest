@@ -1,4 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
+// [アニメーション] 破線を動かすため useEffect / useState が必要。再開時にコメントを外して上の import を置き換える。
+// import { useEffect, useMemo, useState } from 'react'
 import {
   NODE_H,
   NODE_W,
@@ -72,18 +74,18 @@ export function ScratchGraph({
   onFocusNode,
   onTooltip,
 }: ScratchGraphProps) {
-  const [flowPhase, setFlowPhase] = useState(0)
-
-  useEffect(() => {
-    if (!focusedNodeId) {
-      setFlowPhase(0)
-      return
-    }
-    const timer = window.setInterval(() => {
-      setFlowPhase((phase) => phase + 2)
-    }, 45)
-    return () => window.clearInterval(timer)
-  }, [focusedNodeId])
+  // [アニメーション] 流入/流出の破線を動かして流れを見せる。再開時にコメントを外す。
+  // const [flowPhase, setFlowPhase] = useState(0)
+  // useEffect(() => {
+  //   if (!focusedNodeId) {
+  //     setFlowPhase(0)
+  //     return
+  //   }
+  //   const timer = window.setInterval(() => {
+  //     setFlowPhase((phase) => phase + 2)
+  //   }, 45)
+  //   return () => window.clearInterval(timer)
+  // }, [focusedNodeId])
 
   const maxEdgeValue = useMemo(
     () =>
@@ -219,21 +221,24 @@ export function ScratchGraph({
             : scratchStyles.edgeStroke
           let markerEnd = isMuted ? 'url(#tn-arrow-muted)' : 'url(#tn-arrow)'
           let opacity = isMuted ? 0.55 : 0.95
-          let dashArray: string | undefined
-          let dashOffset = 0
+          // [アニメーション] 破線パターン用の変数。再開時にコメントを外す。
+          // let dashArray: string | undefined
+          // let dashOffset = 0
 
           if (role === 'flow-in') {
             strokeColor = scratchStyles.edgeFlowIn
             markerEnd = 'url(#tn-arrow-flow-in)'
             opacity = 0.95
-            dashArray = '10 7'
-            dashOffset = flowPhase
+            // [アニメーション] 流入の破線を動かす
+            // dashArray = '10 7'
+            // dashOffset = flowPhase
           } else if (role === 'flow-out') {
             strokeColor = scratchStyles.edgeFlowOut
             markerEnd = 'url(#tn-arrow-flow-out)'
             opacity = 0.95
-            dashArray = '10 7'
-            dashOffset = -flowPhase
+            // [アニメーション] 流出の破線を動かす
+            // dashArray = '10 7'
+            // dashOffset = -flowPhase
           } else if (role === 'faded') {
             opacity = 0.18
           }
@@ -253,8 +258,9 @@ export function ScratchGraph({
                 y2={geom.end.y}
                 stroke={strokeColor}
                 strokeWidth={baseWidth}
-                strokeDasharray={dashArray}
-                strokeDashoffset={dashOffset}
+                // [アニメーション] 破線を描いて動かす。再開時にコメントを外す。
+                // strokeDasharray={dashArray}
+                // strokeDashoffset={dashOffset}
                 markerEnd={markerEnd}
                 pointerEvents="none"
               />
@@ -347,22 +353,25 @@ export function ScratchGraph({
             ? 'url(#tn-arrow-ext-muted)'
             : 'url(#tn-arrow-ext)'
           let extOpacity = isExternalMuted ? 0.55 : 1
-          let extDash: string | undefined
-          let extDashOffset = 0
+          // [アニメーション] 圏外矢印の破線用変数。再開時にコメントを外す。
+          // let extDash: string | undefined
+          // let extDashOffset = 0
 
           if (isFocusExternal) {
             if (focusInfo.externalFlow === 'in') {
               extStroke = scratchStyles.edgeFlowIn
               extMarker = 'url(#tn-arrow-ext-flow-in)'
               extOpacity = 0.95
-              extDash = '10 7'
-              extDashOffset = flowPhase
+              // [アニメーション] 流入の破線を動かす
+              // extDash = '10 7'
+              // extDashOffset = flowPhase
             } else {
               extStroke = scratchStyles.edgeFlowOut
               extMarker = 'url(#tn-arrow-ext-flow-out)'
               extOpacity = 0.95
-              extDash = '10 7'
-              extDashOffset = -flowPhase
+              // [アニメーション] 流出の破線を動かす
+              // extDash = '10 7'
+              // extDashOffset = -flowPhase
             }
           } else if (focusedNodeId && focusedNodeId !== node.id) {
             extOpacity = 0.18
@@ -379,8 +388,9 @@ export function ScratchGraph({
                     y2={externalGeom.lineEnd.y}
                     stroke={extStroke}
                     strokeWidth={1.4}
-                    strokeDasharray={extDash}
-                    strokeDashoffset={extDashOffset}
+                    // [アニメーション] 圏外の破線を描いて動かす。再開時にコメントを外す。
+                    // strokeDasharray={extDash}
+                    // strokeDashoffset={extDashOffset}
                     markerEnd={extMarker}
                     pointerEvents="none"
                   />

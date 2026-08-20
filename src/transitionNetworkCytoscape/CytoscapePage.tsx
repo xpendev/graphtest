@@ -51,7 +51,8 @@ export function CytoscapePage() {
   // クロージャに古い setTooltip が残らないよう ref 経由にする。
   const setTooltipRef = useRef(setTooltip)
   setTooltipRef.current = setTooltip
-  const flowTimerRef = useRef<number | null>(null)
+  // [アニメーション] 流入/流出の破線を動かすタイマー。再開時にコメントを外す。
+  // const flowTimerRef = useRef<number | null>(null)
   const focusedNodeIdRef = useRef<string | null>(null)
 
   // --- API ---
@@ -84,20 +85,22 @@ export function CytoscapePage() {
     [network],
   )
 
-  const stopFlowAnimation = () => {
-    if (flowTimerRef.current != null) {
-      window.clearInterval(flowTimerRef.current)
-      flowTimerRef.current = null
-    }
-  }
+  // [アニメーション] 破線の動きを止める。再開時にコメントを外す。
+  // const stopFlowAnimation = () => {
+  //   if (flowTimerRef.current != null) {
+  //     window.clearInterval(flowTimerRef.current)
+  //     flowTimerRef.current = null
+  //   }
+  // }
 
   const clearFlowFocus = (cy: Core) => {
-    stopFlowAnimation()
+    // [アニメーション] stopFlowAnimation()
     cy.nodes().removeClass('focus related faded up down flow-in flow-out')
     cy.edges().removeClass('flow-in flow-out faded')
-    cy.edges().forEach((edge) => {
-      edge.removeData('flowPhase')
-    })
+    // [アニメーション] 破線の位相データをクリアする。再開時にコメントを外す。
+    // cy.edges().forEach((edge) => {
+    //   edge.removeData('flowPhase')
+    // })
   }
 
   const applyFlowFocus = (cy: Core, nodeId: string) => {
@@ -137,16 +140,17 @@ export function CytoscapePage() {
     incoming.addClass('flow-in')
     outgoing.addClass('flow-out')
 
-    let phase = 0
-    flowTimerRef.current = window.setInterval(() => {
-      phase += 2
-      incoming.forEach((edge: cytoscape.EdgeSingular) => {
-        edge.data('flowPhase', phase)
-      })
-      outgoing.forEach((edge: cytoscape.EdgeSingular) => {
-        edge.data('flowPhase', -phase)
-      })
-    }, 45)
+    // [アニメーション] 流入/流出の破線を動かして流れを見せる。再開時にコメントを外す。
+    // let phase = 0
+    // flowTimerRef.current = window.setInterval(() => {
+    //   phase += 2
+    //   incoming.forEach((edge: cytoscape.EdgeSingular) => {
+    //     edge.data('flowPhase', phase)
+    //   })
+    //   outgoing.forEach((edge: cytoscape.EdgeSingular) => {
+    //     edge.data('flowPhase', -phase)
+    //   })
+    // }, 45)
   }
 
   useEffect(() => {
@@ -328,7 +332,7 @@ export function CytoscapePage() {
 
   useEffect(() => {
     return () => {
-      stopFlowAnimation()
+      // [アニメーション] stopFlowAnimation()
       cyRef.current?.destroy()
       cyRef.current = null
     }

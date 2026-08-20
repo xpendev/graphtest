@@ -70,7 +70,8 @@ type LinkModel = {
 export function GoJsPage() {
   const hostRef = useRef<HTMLDivElement>(null)
   const diagramRef = useRef<go.Diagram | null>(null)
-  const flowTimerRef = useRef<number | null>(null)
+  // [アニメーション] 流入/流出の破線を動かすタイマー。再開時にコメントを外す。
+  // const flowTimerRef = useRef<number | null>(null)
   const focusedNodeKeyRef = useRef<string | null>(null)
   /** グラフに渡すノード数（スライダー確定値） */
   const [nodeCount, setNodeCount] = useState(8)
@@ -90,12 +91,13 @@ export function GoJsPage() {
   const setTooltipRef = useRef(setTooltip)
   setTooltipRef.current = setTooltip
 
-  const stopFlowAnimation = () => {
-    if (flowTimerRef.current != null) {
-      window.clearInterval(flowTimerRef.current)
-      flowTimerRef.current = null
-    }
-  }
+  // [アニメーション] 破線の動きを止める。再開時にコメントを外す。
+  // const stopFlowAnimation = () => {
+  //   if (flowTimerRef.current != null) {
+  //     window.clearInterval(flowTimerRef.current)
+  //     flowTimerRef.current = null
+  //   }
+  // }
 
   // --- API ---
   useEffect(() => {
@@ -181,7 +183,7 @@ export function GoJsPage() {
     if (modelData.nodes.length === 0) return
 
     const resetFocusStyles = (diagram: go.Diagram) => {
-      stopFlowAnimation()
+      // [アニメーション] stopFlowAnimation()
       diagram.nodes.each((node) => {
         const data = node.data as NodeModel
         if (data.category === 'ghost') return
@@ -288,8 +290,11 @@ export function GoJsPage() {
           if (path) {
             path.stroke = color
             path.opacity = 0.95
-            path.strokeDashArray = [10, 7]
+            path.strokeDashArray = null
             path.strokeDashOffset = 0
+            // [アニメーション] 破線パターン（動かすための下地）。再開時にコメントを外す。
+            // path.strokeDashArray = [10, 7]
+            // path.strokeDashOffset = 0
           }
           if (arrow) {
             arrow.fill = color
@@ -300,21 +305,22 @@ export function GoJsPage() {
       styleFlowLinks(incomingLinks, '#8ff5ab')
       styleFlowLinks(outgoingLinks, '#ff8f8f')
 
-      // GoJS の strokeDashOffset は 0 以上のみ。負数は無視されるため、
-      // 流出は周期を折り返して逆方向に見せる。
-      const dashPeriod = 10 + 7
-      let phase = 0
-      flowTimerRef.current = window.setInterval(() => {
-        phase = (phase + 2) % dashPeriod
-        incomingLinks.forEach((link) => {
-          const path = link.findObject('PATH') as go.Shape | null
-          if (path) path.strokeDashOffset = phase
-        })
-        outgoingLinks.forEach((link) => {
-          const path = link.findObject('PATH') as go.Shape | null
-          if (path) path.strokeDashOffset = (dashPeriod - phase) % dashPeriod
-        })
-      }, 45)
+      // [アニメーション] 流入/流出の破線を動かして流れを見せる。再開時にコメントを外す。
+      // // GoJS の strokeDashOffset は 0 以上のみ。負数は無視されるため、
+      // // 流出は周期を折り返して逆方向に見せる。
+      // const dashPeriod = 10 + 7
+      // let phase = 0
+      // flowTimerRef.current = window.setInterval(() => {
+      //   phase = (phase + 2) % dashPeriod
+      //   incomingLinks.forEach((link) => {
+      //     const path = link.findObject('PATH') as go.Shape | null
+      //     if (path) path.strokeDashOffset = phase
+      //   })
+      //   outgoingLinks.forEach((link) => {
+      //     const path = link.findObject('PATH') as go.Shape | null
+      //     if (path) path.strokeDashOffset = (dashPeriod - phase) % dashPeriod
+      //   })
+      // }, 45)
     }
 
     const showAtViewPoint = (
@@ -472,7 +478,7 @@ export function GoJsPage() {
 
   useEffect(() => {
     return () => {
-      stopFlowAnimation()
+      // [アニメーション] stopFlowAnimation()
       diagramRef.current?.div && (diagramRef.current.div = null)
       diagramRef.current = null
     }
