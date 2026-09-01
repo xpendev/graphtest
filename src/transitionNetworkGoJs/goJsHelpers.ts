@@ -18,6 +18,8 @@ const CY = 280
 const NODE_H = 64
 /** 圏外矢印の先端をノード上下縁から外へ伸ばす距離 */
 const EXTERNAL_TIP_GAP = 56
+/** 圏外件数ラベルをドキュメント X 方向へずらす距離 */
+const EXTERNAL_LABEL_SHIFT_X = 36
 
 type DisplaySettings = {
   radiusX: number
@@ -182,6 +184,8 @@ type ExternalLinkModel = {
   toLabel: string
   kind: string
   muted: boolean
+  /** ドキュメント X 方向のラベルずらし（中心より左=負、右=正） */
+  externalLabelShiftX: number
 }
 
 /**
@@ -228,6 +232,8 @@ export function buildExternalModels(
       toLabel: isInflow ? node.label : '圏外',
       kind: 'external',
       muted: isMuted,
+      externalLabelShiftX:
+        center.x < CX ? -EXTERNAL_LABEL_SHIFT_X : EXTERNAL_LABEL_SHIFT_X,
     })
   })
 

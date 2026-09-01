@@ -173,6 +173,28 @@ export function buildLinkTemplate(handlers: GraphObjectHandlers): go.Link {
   )
 }
 
+/** 圏外件数ラベルをドキュメント X 方向へずらす（リンク直交成分に変換） */
+function externalLabelSegmentOffset(
+  shiftX: number,
+  textBlock: go.GraphObject,
+): go.Point {
+  const link = textBlock.part as go.Link | null
+  if (!link?.fromNode || !link?.toNode) {
+    return new go.Point(0, 0)
+  }
+  const from = link.fromNode.location
+  const to = link.toNode.location
+  const dx = to.x - from.x
+  const dy = to.y - from.y
+  const len = Math.hypot(dx, dy)
+  if (len < 1) return new go.Point(0, 0)
+  if (Math.abs(dy) < 1) {
+    return new go.Point(shiftX, 0)
+  }
+  const perpDist = (shiftX * len) / -dy
+  return new go.Point(0, perpDist)
+}
+
 /** 圏外リンクテンプレート（短い直線＋標準矢じり） */
 export function buildExternalLinkTemplate(
   handlers: GraphObjectHandlers,
@@ -220,9 +242,12 @@ export function buildExternalLinkTemplate(
       {
         stroke: LINK_LABEL,
         font: '11px sans-serif',
-        segmentOffset: new go.Point(0, -10),
+        textAlign: 'center',
+        segmentIndex: -1,
+        segmentFraction: 0.5,
       },
       new go.Binding('text', 'label'),
+      new go.Binding('segmentOffset', 'externalLabelShiftX', externalLabelSegmentOffset),
       new go.Binding('stroke', 'muted', (muted: boolean) =>
         muted ? LINK_LABEL_MUTED : LINK_LABEL,
       ),
