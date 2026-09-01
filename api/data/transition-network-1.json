@@ -1,0 +1,12 @@
+{
+  "nodes": [
+    {
+      "id": "other",
+      "label": "その他",
+      "before": 150712,
+      "after": 153077,
+      "external": 1313
+    }
+  ],
+  "edges": []
+}

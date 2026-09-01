@@ -1,3 +1,4 @@
+import type { Diagram } from 'gojs'
 import {
   NODE_COUNT_MAX,
   NODE_COUNT_MIN,
@@ -13,14 +14,112 @@ export const EDGE_MIN_MAX = 1000
 const CX = 600
 /** 楕円配置の中心 Y */
 const CY = 280
-/** ノードを並べる大きな楕円軌道の横半径 */
-const RADIUS_X = 900
-/** ノードを並べる大きな楕円軌道の縦半径 */
-const RADIUS_Y = 350
 /** ノード楕円の高さ（goJsStyles と揃える） */
 const NODE_H = 64
 /** 圏外矢印の先端をノード上下縁から外へ伸ばす距離 */
 const EXTERNAL_TIP_GAP = 56
+
+type DisplaySettings = {
+  radiusX: number
+  radiusY: number
+  zoom: number
+}
+
+/** 11件以降（未調整） */
+const DISPLAY_FALLBACK: DisplaySettings = {
+  radiusX: 900,
+  radiusY: 350,
+  zoom: 1.0,
+}
+
+/**
+ * ノード数ごとの配置円と zoom（1〜50 は個別固定、51以降は DISPLAY_FALLBACK）。
+ * 調整するのは radiusX / radiusY / zoom のみ。
+ */
+const DISPLAY_BY_COUNT: Record<number, DisplaySettings> = {
+  1: { radiusX: 150, radiusY: 70, zoom: 1.35 },
+  2: { radiusX: 150, radiusY: 70, zoom: 1.35 },
+  3: { radiusX: 170, radiusY: 77, zoom: 1.35 },
+  4: { radiusX: 170, radiusY: 60, zoom: 1.35 },
+  5: { radiusX: 200, radiusY: 70, zoom: 1.2 },
+  6: { radiusX: 220, radiusY: 85, zoom: 1.0 },
+  7: { radiusX: 250, radiusY: 100, zoom: 1.0 },
+  8: { radiusX: 270, radiusY: 130, zoom: 1.0 },
+  9: { radiusX: 300, radiusY: 150, zoom: 1.0 },
+  10: { radiusX: 310, radiusY: 150, zoom: 1.0 },
+  11: { radiusX: 330, radiusY: 160, zoom: 1.0 },
+  12: { radiusX: 350, radiusY: 180, zoom: 1.0 },
+  13: { radiusX: 380, radiusY: 200, zoom: 1.0 },
+  14: { radiusX: 400, radiusY: 220, zoom: 1.0 },
+  15: { radiusX: 450, radiusY: 240, zoom: 1.0 },
+  16: { radiusX: 500, radiusY: 260, zoom: 1.0 },
+  17: { radiusX: 550, radiusY: 280, zoom: 1.0 },
+  18: { radiusX: 600, radiusY: 300, zoom: 1.0 },
+  19: { radiusX: 630, radiusY: 330, zoom: 1.0 },
+  20: { radiusX: 650, radiusY: 350, zoom: 1.0 },
+  21: { radiusX: 680, radiusY: 350, zoom: 1.0 },
+  22: { radiusX: 710, radiusY: 350, zoom: 1.0 },
+  23: { radiusX: 730, radiusY: 350, zoom: 1.0 },
+  24: { radiusX: 750, radiusY: 350, zoom: 1.0 },
+  25: { radiusX: 780, radiusY: 350, zoom: 1.0 },
+  26: { radiusX: 810, radiusY: 350, zoom: 1.0 },
+  27: { radiusX: 830, radiusY: 350, zoom: 1.0 },
+  28: { radiusX: 850, radiusY: 350, zoom: 1.0 },
+  29: { radiusX: 870, radiusY: 350, zoom: 1.0 },
+  30: { radiusX: 900, radiusY: 350, zoom: 1.0 },
+  31: { radiusX: 930, radiusY: 400, zoom: 1.0 },
+  32: { radiusX: 960, radiusY: 450, zoom: 1.0 },
+  33: { radiusX: 990, radiusY: 450, zoom: 1.0 },
+  34: { radiusX: 1020, radiusY: 450, zoom: 1.0 },
+  35: { radiusX: 1050, radiusY: 450, zoom: 1.0 },
+  36: { radiusX: 1080, radiusY: 500, zoom: 1.0 },
+  37: { radiusX: 1110, radiusY: 500, zoom: 1.0 },
+  38: { radiusX: 1140, radiusY: 500, zoom: 1.0 },
+  39: { radiusX: 1170, radiusY: 500, zoom: 1.0 },
+  40: { radiusX: 1200, radiusY: 500, zoom: 1.0 },
+  41: { radiusX: 1230, radiusY: 550, zoom: 1.0 },
+  42: { radiusX: 1260, radiusY: 550, zoom: 1.0 },
+  43: { radiusX: 1290, radiusY: 550, zoom: 1.0 },
+  44: { radiusX: 1320, radiusY: 550, zoom: 1.0 },
+  45: { radiusX: 1350, radiusY: 550, zoom: 1.0 },
+  46: { radiusX: 1380, radiusY: 600, zoom: 1.0 },
+  47: { radiusX: 1410, radiusY: 600, zoom: 1.0 },
+  48: { radiusX: 1440, radiusY: 600, zoom: 1.0 },
+  49: { radiusX: 1470, radiusY: 600, zoom: 1.0 },
+  50: { radiusX: 1500, radiusY: 600, zoom: 1.0 },
+}
+
+function clampNodeCount(count: number): number {
+  return Math.min(
+    NODE_COUNT_MAX,
+    Math.max(NODE_COUNT_MIN, Math.floor(count)),
+  )
+}
+
+function displayForCount(count: number): DisplaySettings {
+  const n = clampNodeCount(count)
+  return DISPLAY_BY_COUNT[n] ?? DISPLAY_FALLBACK
+}
+
+/** ノード数に応じた配置楕円（軌道）の半径 */
+export function layoutOrbitForCount(count: number): {
+  radiusX: number
+  radiusY: number
+} {
+  const { radiusX, radiusY } = displayForCount(count)
+  return { radiusX, radiusY }
+}
+
+/** 画面初期表示・ノード数変更時の viewport を整える */
+export function applyInitialViewport(
+  diagram: Diagram,
+  nodeCount: number,
+): void {
+  const { zoom } = displayForCount(nodeCount)
+  diagram.commandHandler.zoomToFit()
+  diagram.scale *= zoom
+  diagram.centerRect(diagram.documentBounds)
+}
 
 /** 数値を日本ロケールのカンマ区切りにする */
 export function formatInt(n: number): string {
@@ -52,6 +151,7 @@ export function formatDelta(
  * 上（12時）から時計回り。描画はしない。
  */
 export function ellipsePositions(count: number): { x: number; y: number }[] {
+  const { radiusX, radiusY } = layoutOrbitForCount(count)
   return Array.from({ length: count }, (_, i) => {
     /** 1周ぶんの角度（2π = 360度） */
     const FULL_TURN = 2 * Math.PI
@@ -64,8 +164,8 @@ export function ellipsePositions(count: number): { x: number; y: number }[] {
     /** 最終的な角度（12時開始 + i個目の進み） */
     const angle = START_AT_TOP + angleFromStart
 
-    const x = CX + RADIUS_X * Math.cos(angle)
-    const y = CY + RADIUS_Y * Math.sin(angle)
+    const x = CX + radiusX * Math.cos(angle)
+    const y = CY + radiusY * Math.sin(angle)
     return { x, y }
   })
 }
@@ -137,15 +237,10 @@ export function buildExternalModels(
 /** ノード内に表示する複数行ラベルを組み立てる */
 export function nodeLabelLines(node: GoJsNetworkNode): string {
   const { delta, pct } = formatDelta(node.before, node.after)
-  const externalLine =
-    node.external >= 0
-      ? `外:+${formatInt(node.external)}`
-      : `外:${formatInt(node.external)}`
   return [
     node.label,
     `${formatInt(node.before)} → ${formatInt(node.after)}`,
     `${delta} ${pct}`,
-    externalLine,
   ].join('\n')
 }
 

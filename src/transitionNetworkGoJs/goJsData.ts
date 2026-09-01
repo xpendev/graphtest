@@ -30,9 +30,9 @@ export type GoJsNetworkEdge = {
 }
 
 /** ノード数の下限 */
-export const NODE_COUNT_MIN = 2
-/** 試し表示用の上限（Cytoscape / Scratch と同じ） */
-export const NODE_COUNT_MAX = 30
+export const NODE_COUNT_MIN = 1
+/** 試し表示用の上限 */
+export const NODE_COUNT_MAX = 50
 
 /** しきい値未満（または muted 指定）ならグレー表示対象 */
 export function isGrayEdge(edge: GoJsNetworkEdge, edgeMinAbs: number): boolean {
@@ -43,7 +43,7 @@ export function isGrayEdge(edge: GoJsNetworkEdge, edgeMinAbs: number): boolean {
 
 /**
  * バックエンド想定 API から曼荼羅チャートを取得する。
- * count は表示ノード数（2〜30）。
+ * count は表示ノード数（1〜50）。
  */
 export async function fetchGoJsNetwork(count: number): Promise<{
   nodes: GoJsNetworkNode[]

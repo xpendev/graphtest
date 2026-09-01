@@ -2,8 +2,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 import type { Connect, Plugin } from 'vite'
 
-const NODE_COUNT_MIN = 2
-const NODE_COUNT_MAX = 30
+const NODE_COUNT_MIN = 1
+const NODE_COUNT_MAX = 50
 
 /**
  * 本番バックエンドを模した API。

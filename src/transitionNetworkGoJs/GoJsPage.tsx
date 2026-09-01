@@ -10,6 +10,7 @@ import {
 import {
   EDGE_MIN_DEFAULT,
   EDGE_MIN_MAX,
+  applyInitialViewport,
   buildExternalModels,
   edgeTooltipContent,
   ellipsePositions,
@@ -70,6 +71,7 @@ type LinkModel = {
 export function GoJsPage() {
   const hostRef = useRef<HTMLDivElement>(null)
   const diagramRef = useRef<go.Diagram | null>(null)
+  const prevNetworkNodeCountRef = useRef<number | null>(null)
   // [アニメーション] 流入/流出の破線を動かすタイマー。再開時にコメントを外す。
   // const flowTimerRef = useRef<number | null>(null)
   const focusedNodeKeyRef = useRef<string | null>(null)
@@ -445,9 +447,11 @@ export function GoJsPage() {
       })
 
       diagramRef.current = diagram
-      // レイアウト確定後にフィット（即時 zoomToFit だと寸法未確定で外れることがある）
+      prevNetworkNodeCountRef.current = modelData.nodes.filter(
+        (node) => node.category !== 'ghost',
+      ).length
       requestAnimationFrame(() => {
-        diagram.commandHandler.zoomToFit()
+        applyInitialViewport(diagram, prevNetworkNodeCountRef.current ?? 8)
       })
     } else {
       // 2回目以降: インスタンスは再利用し、モデルだけ差し替える
@@ -455,17 +459,23 @@ export function GoJsPage() {
       const keepScale = diagram.scale
       const keepPos = diagram.position.copy()
       const hadNodes = diagram.nodes.count > 0
+      const networkNodeCount = modelData.nodes.filter(
+        (node) => node.category !== 'ghost',
+      ).length
+      const nodeCountChanged =
+        prevNetworkNodeCountRef.current !== networkNodeCount
+      prevNetworkNodeCountRef.current = networkNodeCount
       setTooltip(null)
       diagram.model = new go.GraphLinksModel({
         nodeDataArray: modelData.nodes,
         linkDataArray: modelData.links,
       })
-      if (hadNodes) {
+      if (hadNodes && !nodeCountChanged) {
         diagram.scale = keepScale
         diagram.position = keepPos
       } else {
         requestAnimationFrame(() => {
-          diagram.commandHandler.zoomToFit()
+          applyInitialViewport(diagram, networkNodeCount)
         })
       }
       if (focusedNodeKeyRef.current) {

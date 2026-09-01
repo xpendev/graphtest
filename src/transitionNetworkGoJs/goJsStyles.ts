@@ -42,6 +42,8 @@ export const EXTERNAL_LINK_STROKE_MUTED = '#6a737a'
 export const NODE_WIDTH = 168
 /** ノード楕円の高さ */
 export const NODE_HEIGHT = 64
+/** ノード内ラベルのフォント */
+export const NODE_LABEL_FONT = '15px sans-serif'
 
 /** 件数に比例して線幅を求める（おおよそ 1.2〜12） */
 function linkStrokeWidthFromValue(value: number): number {
@@ -91,7 +93,7 @@ export function buildNodeTemplate(handlers: GraphObjectHandlers): go.Node {
       go.TextBlock,
       {
         stroke: NODE_TEXT,
-        font: '11px sans-serif',
+        font: NODE_LABEL_FONT,
         textAlign: 'center',
         margin: 4,
       },
@@ -124,6 +126,7 @@ export function buildLinkTemplate(handlers: GraphObjectHandlers): go.Link {
   return $(
     go.Link,
     {
+      layerName: 'Background',
       routing: go.Routing.Normal,
       curve: go.Curve.Bezier,
       selectable: false,
@@ -177,6 +180,7 @@ export function buildExternalLinkTemplate(
   return $(
     go.Link,
     {
+      layerName: 'Background',
       routing: go.Routing.Normal,
       curve: go.Curve.None,
       selectable: false,
