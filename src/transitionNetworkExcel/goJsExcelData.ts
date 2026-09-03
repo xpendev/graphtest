@@ -43,6 +43,23 @@ function ellipseEdgeToward(
   return { x: center.x + t * vx, y: center.y + t * vy }
 }
 
+/**
+ * Excel 圏外矢印の棒の長さ倍率。
+ * GoJS の tip 位置に対し、ノード縁から先端までの距離をこの割合にする。
+ */
+const EXCEL_EXTERNAL_SHAFT_SCALE = 0.5
+
+/** 圏外矢印の先端を、縁からの距離が短くなる位置へ移す */
+function shortenExternalTip(
+  edgePoint: { x: number; y: number },
+  tip: { x: number; y: number },
+): { x: number; y: number } {
+  return {
+    x: edgePoint.x + (tip.x - edgePoint.x) * EXCEL_EXTERNAL_SHAFT_SCALE,
+    y: edgePoint.y + (tip.y - edgePoint.y) * EXCEL_EXTERNAL_SHAFT_SCALE,
+  }
+}
+
 /** ノード楕円内に出す複数行ラベル */
 function nodeDisplayLabel(node: GoJsNetworkNode): string {
   const { delta, pct } = formatDelta(node.before, node.after)
@@ -132,8 +149,10 @@ export function buildGoJsExcelTables(input: GoJsExcelExportInput): GoJsExcelTabl
       if (from && to) {
         if (nodeLocById.has(fromId) && ghostLocById.has(toId)) {
           from = ellipseEdgeToward(from, to)
+          to = shortenExternalTip(from, to)
         } else if (ghostLocById.has(fromId) && nodeLocById.has(toId)) {
           to = ellipseEdgeToward(to, from)
+          from = shortenExternalTip(to, from)
         }
       }
       return [

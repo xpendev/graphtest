@@ -346,7 +346,8 @@ End Function
 Private Function NodeDisplayName(ByVal wsNode As Worksheet, ByVal nodeId As String) As String
     Dim r As Long
     If Left$(nodeId, 10) = "ext-ghost-" Then
-        NodeDisplayName = "圏外"
+        ' 圏外
+        NodeDisplayName = ChrW(&H570F) & ChrW(&H5916)
         Exit Function
     End If
     r = 2
@@ -369,18 +370,29 @@ Private Function BuildEdgeScreenTip( _
     ByVal kind As String _
 ) As String
     Dim tip As String
+    Dim sep As String
+    Dim label As String
+    sep = " -> "
     If kind = "external" Then
-        tip = fromName & " → " & toName & " | 圏外 " & FormatTipNumber(value)
+        ' 圏外
+        label = ChrW(&H570F) & ChrW(&H5916)
+        tip = fromName & sep & toName & " | " & label & " " & FormatTipNumber(value)
     Else
-        tip = fromName & " → " & toName & " | 件数 " & FormatTipNumber(value)
+        ' 件数
+        label = ChrW(&H4EF6) & ChrW(&H6570)
+        tip = fromName & sep & toName & " | " & label & " " & FormatTipNumber(value)
     End If
     BuildEdgeScreenTip = Left$(tip, 255)
 End Function
 
 ' 矢印だけに ScreenTip を付ける（ノードには付けない）
 Private Sub AttachEdgeScreenTip(ByVal ws As Worksheet, ByVal shp As Shape, ByVal tip As String)
+    Dim h As Hyperlink
     On Error Resume Next
-    ws.Hyperlinks.Add Anchor:=shp, Address:="", ScreenTip:=tip
+    Set h = ws.Hyperlinks.Add(Anchor:=shp, Address:="", SubAddress:="")
+    If Not h Is Nothing Then
+        h.ScreenTip = Left$(tip, 255)
+    End If
     On Error GoTo 0
 End Sub
 
