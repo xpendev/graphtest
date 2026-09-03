@@ -19,6 +19,7 @@ import {
   nodeLabelLines,
   nodeTooltipContent,
 } from './goJsHelpers'
+import { exportGoJsNetworkExcelFromTemplate } from '../transitionNetworkExcel/goJsExcelTemplateExport'
 import {
   buildExternalLinkTemplate,
   buildGhostNodeTemplate,
@@ -83,6 +84,7 @@ export function GoJsPage() {
   const [message, setMessage] = useState<string | null>(null)
   const [isDownloading, setIsDownloading] = useState(false)
   const [isCopying, setIsCopying] = useState(false)
+  const [isExportingExcel, setIsExportingExcel] = useState(false)
   const [network, setNetwork] = useState<{
     nodes: GoJsNetworkNode[]
     edges: GoJsNetworkEdge[]
@@ -563,6 +565,34 @@ export function GoJsPage() {
     }
   }
 
+  /** 現在のグラフをマクロ付き .xlsm でダウンロードする */
+  const exportExcel = async () => {
+    if (!network) {
+      setMessage('グラフの準備ができていません。')
+      return
+    }
+    setIsExportingExcel(true)
+    setMessage(null)
+    try {
+      await exportGoJsNetworkExcelFromTemplate({
+        nodes: network.nodes,
+        edges: network.edges,
+        edgeMinAbs,
+      })
+      setMessage(
+        'Excel（.xlsm）をダウンロードしました。開いてマクロを有効にすると Chart に自動描画されます。',
+      )
+    } catch (error) {
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : 'Excel出力に失敗しました。',
+      )
+    } finally {
+      setIsExportingExcel(false)
+    }
+  }
+
   return (
     <main className="tn-page">
       <header className="tn-page-header">
@@ -600,6 +630,16 @@ export function GoJsPage() {
             onClick={downloadPng}
           >
             {isDownloading ? 'ダウンロード中…' : 'PNGをダウンロード'}
+          </button>
+          <button
+            type="button"
+            className="tn-page-btn"
+            disabled={isExportingExcel || !network}
+            onClick={() => {
+              void exportExcel()
+            }}
+          >
+            {isExportingExcel ? 'Excel出力（VBA）中…' : 'Excel出力（VBA）'}
           </button>
         </div>
       </header>
